@@ -179,7 +179,8 @@ var SchedulingForm = (function() {
 
 
 	//SchedulingFormのDOM;
-	var form = document.getElementById('scheduling-form');
+	var interface = document.getElementById('interface');
+	var form = interface.querySelector('.scheduling-form')
 	var scheduleTitle = form.querySelector('.schedule-title');
 	var title = scheduleTitle.querySelector('input[name="title"]');
 	var content = form.querySelector('.schedule-content');
