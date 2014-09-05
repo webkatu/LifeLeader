@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>LifeLeader</title>
+	<link rel="stylesheet" type="text/css" href="css/reset.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<script defer src="js/LifeLeader.js"></script>
+</head>
+<body>
+	<header id="header">
+		<div id="header-inner">
+			<h1 id="site-title">LifeLeader</h1>
+		</div>
+	</header>
+	<div id="wrapper">
+		<div id="main">
+			<div id="interface">
+				<div id="scheduling-form-outer">
+					<form action="" method="POST" id="scheduling-form">
+						<fieldset class="schedule-title">
+							<legend>スケジュールのタイトル</legend>
+							<input type="text" name="title">
+						</fieldset>
+						<fieldset class="schedule-content">
+							<legend>個々の予定</legend>
+							<dl>
+								<dt><label for="schedule-name">予定名</label><dt>
+								<dd><input type="text" id="schedule-name" name="name" list="example-schedule"></dd>
+							<datalist id="example-schedule">
+								<option value="食事"></option>
+								<option value="仕事"></option>
+								<option value="移動"></option>
+								<option value="家事"></option>
+								<option value="読書"></option>
+								<option value="睡眠"></option>
+							</datalist>
+								<dt><label for="schedule-detail">補足</label></dt>
+								<dd><textarea id="schedule-detail" name="detail" cols="15" rows="4"></textarea></dd>
+							</dl>
+						</fieldset>
+						<fieldset class="schedule-time">
+							<legend>時間(15分単位)</legend>
+							<div class="start">
+								<span class="start">始まり: </span>
+								<label><input type="number" name="hour" max="23" min="0" step="1" size="2" value="0">時</label>
+								<label><input type="number" name="minute" max="45" min="0" step="15" size="2" value="0">分</label><span>から</span>
+							</div>
+							<div class="finish">
+								<span class="finish">終わり: </span>
+								<label><input type="number" name="hour" max="23" min="0" step="1" value="0">時</label>
+								<label><input type="number" name="minute" max="45" min="0" step="15" value="0">分</label><span>まで</span>
+							</div>
+						</fieldset>
+						<fieldset class="schedule-color">
+							<legend>色</legend>
+							<p class="color"><label class="color"><span class="color">背景色: </span><input type="color" name="back-color" value="#ffffff"></label></p>
+							<p class="color"><label class="color"><span class="color">文字色: </span><input type="color" name="font-color" value="#000000"></label></p>
+							<p class="color"><label class="color"><span class="color">線の色: </span><input type="color" name="line-color" value="#000000"></label></p>
+						</fieldset>
+						<div class="scheduling-button">
+							<fieldset>
+								<input type="button" name="back" value="戻る">
+								<input type="button" name="redo" value="やり直し">
+								<input type="button" name="add" value="追加">
+							</fieldset>
+							<fieldset>
+								<input type="button" name="save" value="保存">
+								<input type="button" name="overwrite" value="上書き保存">
+								<input type="button" name="reset" value="最初から">
+								<input type="button" name="all-remove" value="予定全消し">
+								<input type="button" class="display-none" name="all-undo" value="元に戻す">
+							</fieldset>
+						</div>
+					</form>
+				</div>
+				<div class="other">
+				</div>
+			</div>
+			<article>
+				<div id="schedule-display-area">
+					<h1 class="title"></h1>
+					<div class="pie-chart">
+						<svg xmlns="http://www.w3.org/2000/svg" width="620" height="620">
+						</svg>
+					</div>
+					<fieldset class="start-point">
+						<legend>開始点</legend>
+						<label><input type="number" name="hour" max="23" min="0" step="1" size="2" value="">時</label>
+						<label><input type="number" name="minute" max="45" min="0" step="15" size="2" value="">分</label>
+					</fieldset> 
+					<div class="writing">
+						<dl class="schedule">
+						</dl>
+					</div>
+				</div>
+			</article>
+			<div id="storage-display-area">
+			</div>
+		</div>
+		<footer id="footer">
+		</footer>
+	</div>
+</body>
+</html>

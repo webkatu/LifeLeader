@@ -1,0 +1,147 @@
+@charset 'utf-8';
+body {
+	width: 100%;
+	background: #fff;
+	color: #6D5450;
+	word-break: break-all;
+}
+
+fieldset {
+	border: 2px groove #6D5450;
+	margin: 0;
+	padding: 8px;
+}
+
+input, textarea {
+	background: #fff;
+	color: #6D5450;
+	border-color: #6D5450;
+}
+input[type="button"] {
+	cursor: pointer;
+	padding: 5px;
+	border-width: 1px;
+	border-radius: 10%;
+	background: #FDF7E2;
+	/*color: #fff;*/
+}
+
+.display-none {
+	display: none;
+}
+
+#header {
+	height: 40px;
+	background: #6D5450;
+	color: #fff;
+}
+#header-inner {
+	width: 880px;
+	margin: 0 auto;
+	padding: 4px 10px;
+}
+#site-title {
+	font-size: 32px;
+}
+
+#wrapper {
+	width: 880px;
+	margin: 20px auto 0;
+	padding: 0 10px;
+}
+
+#interface {
+}
+
+#interface, #storage-display-area {
+	float: right;
+	width: 220px;
+	padding: 6px;
+	border: 4px groove #6D5450;
+	border-radius: 5px;
+	background: #FDF7E2;
+}
+#scheduling-form, .storage-schedule {
+	background: #fff;
+}
+
+
+#interface .schedule-time input[type="number"] {
+	width: 2.5em;
+}
+
+#interface .schedule-title input[name="title"],
+#interface .schedule-content input#schedule-name, 
+#interface .schedule-content textarea#schedule-detail,
+#interface .schedule-color label.color {
+	width: 100%;
+}
+
+#interface .schedule-time span.start,
+#interface .schedule-time span.finish {
+	display: inline-block;
+	width: 3em;
+}
+
+#interface .schedule-color p.color {
+	margin-bottom: 8px;
+}
+#interface .schedule-color p.color:last-child {
+	margin-bottom: 0;
+}
+
+#schedule-display-area {
+	float: left;
+	width: 620px;
+	margin-right: 20px;
+}
+
+#schedule-display-area .title {
+	font-size: 24px;
+}
+
+#schedule-display-area .writing {
+	font-size: 24px;
+}
+dl.schedule {
+	overflow: hidden;
+}
+dl.schedule dt {
+	clear: both;
+	float: left;
+	width: 6em;
+	margin-bottom: 1em;
+	padding-left: 0.5em;
+	border-left: solid 1em #fff;
+}
+dl.schedule dd {
+	margin-left: 8em;
+	margin-bottom: 1em;
+}
+
+#storage-display-area {
+	margin-top: 20px;
+}
+
+#storage-display-area .storage-schedule {
+	border-top: 2px groove #6D5450;
+	border-right: 2px groove #6D5450;
+	border-left: 2px groove #6D5450;
+}
+#storage-display-area .storage-schedule:last-child {
+	border-bottom: 2px groove #6D5450;
+}
+#storage-display-area svg{
+	width: 200px;
+	height: 200px;
+}
+#storage-display-area input[name="remove"] {
+	float: right;
+}
+
+/* clearfix */
+#storage-display-area input[name="remove"]::after {
+	display: block;
+	clear: both;
+	content: '';
+}
