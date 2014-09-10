@@ -1,14 +1,32 @@
+//スケジュールの各値がnullの時の代替値;
+var SubstituteSchedule = {
+	title: 'No title',
+	name: '未定',
+	detail: '',
+	backColor: '#fdf7e2',
+	fontColor: '#6d5450',
+	lineColor: '#6d5450',
+	startPointHour: null,
+	startPointMinute: null,
+};
+
 var Handler = (function() {
 	var Handler = function(target) {
+		/*
+		IEは対応していない;
 		if(!(target instanceof EventTarget)) {
 			throw new TypeError();
 		}
+		*/
 		var events = [];
+
+		this.key = null;
 		this.getEvents = function() {
 			return clone(events);
 		};
 		this.addListener = function(type, listener, capture) {
 			target.addEventListener(type, listener, capture);
+			this.key = events.length;
 			events[events.length] = {
 				target: target,
 				type: type,
@@ -16,7 +34,7 @@ var Handler = (function() {
 				capture: capture,
 			};
 
-			return events.length; //key;
+			return this.key;
 		};
 		this.removeListener = function(key) {
 			if(key in events) {
@@ -25,10 +43,13 @@ var Handler = (function() {
 				events.splice(key, 1);
 			}
 		};
+
+		//登録したイベント全て消す;
 		this.removeAllListener = function() {
 			while(events.length > 0){
 				this.removeListener(0);
 			}
+			this.key = null;
 		};
 	};
 
@@ -38,21 +59,38 @@ var Handler = (function() {
 
 var SchedulingForm = (function() {
 	var SchedulingForm = function() {
-		SchedulingForm.init();
-
 		Object.defineProperties(this, {
+			historyManager: {value: new HistoryManager()},
 			title: {value: new ScheduleTitle()},
 			lineColor: {value: new ScheduleLineColor()},
 			addButton: {value: new AddButton()},
-			backButton: {value: new BackButton()},
+			undoButton: {value: new UndoButton()},
 			redoButton: {value: new RedoButton()},
 			saveButton: {value: new SaveButton()},
 			overwriteButton: {value: new OverwriteButton()},
 			resetButton: {value: new ResetButton()},
 			allRemoveButton: {value: new AllRemoveButton()},
-			allUndoButton: {value: new AllUndoButton()},
+			allRestoreButton: {value: new AllRestoreButton()},
 			startPoint: {value: new ScheduleStartPoint()},
+			imageDownloadButton: {value: new ImageDownloadButton()},
 		});
+
+		SchedulingForm.init();
+		this.historyManager.add(SchedulingForm.getValue());
+	};
+
+	SchedulingForm.prototype.undo = function() {
+		if(!this.historyManager.undoes()) {
+			return;
+		}
+		SchedulingForm.setValue(this.historyManager.undo());
+	};
+
+	SchedulingForm.prototype.redo = function() {
+		if(!this.historyManager.redoes()) {
+			return;
+		}
+		SchedulingForm.setValue(this.historyManager.redo());
 	};
 
 	SchedulingForm.prototype.setEventListener = function(scheduler) {
@@ -81,26 +119,23 @@ var SchedulingForm = (function() {
 		this.addButton.addClickListener(function() {
 			scheduler.add(new SchedulingData());
 			new ScheduleDisplay(scheduler.getDaySchedule()).displaySchedule();
-		});
+			this.historyManager.add(SchedulingForm.getValue());
+		}.bind(this));
 		eventController.push(this.addButton);
 
 
-		this.backButton.addClickListener(function() {
-			if(!scheduler.goesBack()) {
-				return;
-			}
-			scheduler.goBack();
+		this.undoButton.addClickListener(function() {
+			scheduler.undo();
 			new ScheduleDisplay(scheduler.getDaySchedule()).displaySchedule();
-		});
-		eventController.push(this.backButton);
+			this.undo();
+		}.bind(this));
+		eventController.push(this.undoButton);
 
 		this.redoButton.addClickListener(function() {
-			if(!scheduler.redoes()) {
-				return;
-			}
 			scheduler.redo();
 			new ScheduleDisplay(scheduler.getDaySchedule()).displaySchedule();
-		});
+			this.redo();
+		}.bind(this));
 		eventController.push(this.redoButton);
 
 		this.saveButton.addClickListener(function() {
@@ -119,34 +154,71 @@ var SchedulingForm = (function() {
 
 		this.resetButton.addClickListener(function() {
 			SchedulingForm.setDefaultValue();
+			this.historyManager.add(SchedulingForm.getValue());
 
 			scheduler.init();
-			new ScheduleDisplay(scheduler.getDaySchedule()).displaySchedule();
-		});
+			var scheduleDisplay = new ScheduleDisplay(scheduler.getDaySchedule());
+			scheduleDisplay.displaySchedule();
+			scheduleDisplay.changeTitle();
+		}.bind(this));
 		eventController.push(this.resetButton);
 
 		this.allRemoveButton.addClickListener(function() {
 			new StorageDisplay().allRemove();
 			SchedulingForm.allRemoveButton.classList.add('display-none');
-			SchedulingForm.allUndoButton.classList.remove('display-none');
+			SchedulingForm.allRestoreButton.classList.remove('display-none');
 		});
 		eventController.push(this.allRemoveButton);
 
-		this.allUndoButton.addClickListener(function() {
+		this.allRestoreButton.addClickListener(function() {
 			new StorageDisplay().allUndo();
 			SchedulingForm.allRemoveButton.classList.remove('display-none');
-			SchedulingForm.allUndoButton.classList.add('display-none');
+			SchedulingForm.allRestoreButton.classList.add('display-none');
 		});
-		eventController.push(this.allUndoButton);
+		eventController.push(this.allRestoreButton);
+
+		this.imageDownloadButton.addClickListener(function() {
+			var scheduleAnalyst = new ScheduleExcludingDetailAnalyst(scheduler.getDaySchedule());
+			var canvasDrawer = new MainScheduleCanvasDrawer(scheduleAnalyst.shaping());
+			canvasDrawer.draw();
+			var canvasDownloader = new CanvasDownloader(canvasDrawer.getCanvas());
+			canvasDownloader.download();
+		});
+		eventController.push(this.imageDownloadButton);
+
 	};
 
-	SchedulingForm.init = function() {
-		eventController.removeEvents();
-		SchedulingForm.setDefaultValue();
-		SchedulingForm.allRemoveButton.classList.remove('display-none');
-		SchedulingForm.allUndoButton.classList.add('display-none');
+	SchedulingForm.prototype.removeEventListener = function() {};
+
+
+	SchedulingForm.getValue = function() {
+		return {
+			title: SchedulingForm.title.value,
+			name: SchedulingForm.scheduleName.value,
+			detail: SchedulingForm.detail.value,
+			startHour: SchedulingForm.startHour.value,
+			startMinute: SchedulingForm.startMinute.value,
+			finishHour: SchedulingForm.finishHour.value,
+			finishMinute: SchedulingForm.finishMinute.value,
+			backColor: SchedulingForm.backColor.value,
+			fontColor: SchedulingForm.fontColor.value,
+			lineColor: SchedulingForm.lineColor.value,
+			startPointHour: SchedulingForm.startPointHour.value,
+			startPointMinute: SchedulingForm.startPointMinute.value,
+		};
 	};
 
+	//title lineColorとstartPointを除く;
+	SchedulingForm.setValue = function(value) {
+		SchedulingForm.scheduleName.value = value.name;
+		SchedulingForm.detail.value = value.detail;
+		SchedulingForm.startHour.value = value.startHour;
+		SchedulingForm.startMinute.value = value.startMinute;
+		SchedulingForm.finishHour.value = value.finishHour;
+		SchedulingForm.finishMinute.value = value.finishMinute;
+		SchedulingForm.backColor.value = value.backColor;
+		SchedulingForm.fontColor.value = value.fontColor;
+	};
 	SchedulingForm.setDefaultValue = function() {
 		SchedulingForm.title.value = '';
 		SchedulingForm.scheduleName.value = '';
@@ -155,11 +227,21 @@ var SchedulingForm = (function() {
 		SchedulingForm.startMinute.value = '0';
 		SchedulingForm.finishHour.value = '0';
 		SchedulingForm.finishMinute.value = '0';
-		SchedulingForm.backColor.value = '#ffffff';
-		SchedulingForm.fontColor.value = '#000000';
-		SchedulingForm.lineColor.value = '#000000';
+		SchedulingForm.backColor.value = SubstituteSchedule.backColor;
+		SchedulingForm.fontColor.value = SubstituteSchedule.fontColor;
+		SchedulingForm.lineColor.value = SubstituteSchedule.lineColor;
 		SchedulingForm.startPointHour.value = null;
 		SchedulingForm.startPointMinute.value = null;
+	};
+	SchedulingForm.init = function() {
+		eventController.removeEvents();
+		SchedulingForm.setDefaultValue();
+		SchedulingForm.allRemoveButton.classList.remove('display-none');
+		SchedulingForm.allRestoreButton.classList.add('display-none');
+	};
+	SchedulingForm.setStartPoint = function(time) {
+		SchedulingForm.startPointHour.value = time.hour;
+		SchedulingForm.startPointMinute.value = time.minute;
 	};
 
 	var eventController = new Object();
@@ -198,17 +280,18 @@ var SchedulingForm = (function() {
 	var backColor = color.querySelector('input[name="back-color"]');
 	var fontColor = color.querySelector('input[name="font-color"]');
 	var lineColor = color.querySelector('input[name="line-color"]');
-	var backButton = schedulingButton.querySelector('input[name="back"]');
+	var undoButton = schedulingButton.querySelector('input[name="undo"]');
 	var redoButton = schedulingButton.querySelector('input[name="redo"]');
 	var addButton = schedulingButton.querySelector('input[name="add"]');
 	var saveButton = schedulingButton.querySelector('input[name="save"]');
 	var overwriteButton = schedulingButton.querySelector('input[name="overwrite"]');
 	var resetButton = schedulingButton.querySelector('input[name="reset"]');
 	var allRemoveButton = schedulingButton.querySelector('input[name="all-remove"]');
-	var allUndoButton = schedulingButton.querySelector('input[name="all-undo"]');
+	var allRestoreButton = schedulingButton.querySelector('input[name="all-restore"]');
 	var startPoint = document.querySelector('.start-point');
 	var startPointHour = startPoint.querySelector('input[name="hour"]');
 	var startPointMinute = startPoint.querySelector('input[name="minute"]');
+	var imageDownloadButton = document.querySelector('.download input[name="image"]');
 
 	Object.defineProperties(SchedulingForm, {
 		title: {value: title},
@@ -221,16 +304,17 @@ var SchedulingForm = (function() {
 		backColor: {value: backColor},
 		fontColor: {value: fontColor},
 		lineColor: {value: lineColor},
-		backButton: {value: backButton},
+		undoButton: {value: undoButton},
 		redoButton: {value: redoButton},
 		addButton: {value: addButton},
 		saveButton: {value: saveButton},
 		overwriteButton: {value: overwriteButton},
 		resetButton: {value: resetButton},
 		allRemoveButton: {value: allRemoveButton},
-		allUndoButton: {value: allUndoButton},
+		allRestoreButton: {value: allRestoreButton},
 		startPointHour: {value: startPointHour},
 		startPointMinute: {value: startPointMinute},
+		imageDownloadButton: {value: imageDownloadButton},
 	});
 
 	return SchedulingForm;
@@ -277,7 +361,7 @@ var ScheduleDisplay = (function() {
 	};
 
 	var scheduleDisplayArea = document.getElementById('schedule-display-area');
-	var title = scheduleDisplayArea.querySelector('.title');
+	var title = scheduleDisplayArea.querySelector('.article-title');
 	var pieChart = scheduleDisplayArea.querySelector('.pie-chart');
 	var writing = scheduleDisplayArea.querySelector('.writing');
 	Object.defineProperties(ScheduleDisplay, {
@@ -296,17 +380,7 @@ var ScheduleDisplay = (function() {
 })();
 
 
-//スケジュールの各値がnullの時の代替値;
-var SubstituteSchedule = {
-	title: 'No title',
-	name: '未定',
-	detail: '',
-	backColor: '#FDF7E2',
-	fontColor: '#6D5450',
-	lineColor: '#6D5450',
-	startPointHour: null,
-	startPointMinute: null,
-};
+
 var ScheduleTitle = (function() {
 	var ScheduleTitle = function() {
 		var title = SchedulingForm.title.value;
@@ -395,7 +469,7 @@ var ScheduleTime = (function() {
 
 		Object.defineProperties(this, {
 			hour: {value: ScheduleTime.fixHour(hour)},
-			minute: {value: ScheduleTime.fixMinute(minute)},
+			minute: {value: ScheduleTime.fixSimpleMinute(minute)},
 		});
 	};
 
@@ -420,7 +494,7 @@ var ScheduleTime = (function() {
 	};
 
 	//0,1,2,3のいずれかを返す;
-	ScheduleTime.fixMinute = function(minute) {
+	ScheduleTime.fixSimpleMinute = function(minute) {
 		minute = Math.floor(Number(minute)) || 0;
 		if(minute < 0) {
 			minute = 0;
@@ -430,24 +504,30 @@ var ScheduleTime = (function() {
 		return Math.floor(minute / 15);		
 	};
 
+	//0,1,2,3で表されてるminuteを0,15,30,45に直す;
+	ScheduleTime.fixMinute = function(simpleMinute) {
+		if(!ScheduleTime.isTime(simpleMinute)) {
+			return null;
+		}
+		simpleMinute = Math.floor(simpleMinute);
+		if(simpleMinute < 0) {
+			return 60 + simpleMinute % 4 * 15;
+		}
+		return simpleMinute % 4 * 15;
+	};
+
 	ScheduleTime.isTime = function(time) {
 		return typeof time === 'number' && isFinite(time);
 	};
 
 	//0:00のような文字列を返す;
-	ScheduleTime.getTime = function(hour, fixedMinute) {
-		if(!ScheduleTime.isTime(hour) || !ScheduleTime.isTime(fixedMinute)) {
+	ScheduleTime.getTime = function(hour, simpleMinute) {
+		if(!ScheduleTime.isTime(hour) || !ScheduleTime.isTime(simpleMinute)) {
 			throw new TypeError();
 		}
 		hour = ScheduleTime.fixHour(hour);
-		fixedMinute = Math.floor(fixedMinute);
-		if(fixedMinute < 0) {
-			fixedMinute = 0;
-		}else if(fixedMinute > 3) {
-			fixedMinute = 3;
-		}
 		//0分の場合末尾に0を追加する;
-		return hour + ':' + (fixedMinute * 15 || '00');
+		return hour + ':' + (ScheduleTime.fixMinute(simpleMinute) || '00');
 	}
 
 	return ScheduleTime;
@@ -455,8 +535,8 @@ var ScheduleTime = (function() {
 
 var ScheduleStartTime = (function() {
 	var ScheduleStartTime = function() {
-		hour = Number(SchedulingForm.startHour.value) || 0;
-		minute = Number(SchedulingForm.startMinute.value) || 0;
+		var hour = Number(SchedulingForm.startHour.value) || 0;
+		var minute = Number(SchedulingForm.startMinute.value) || 0;
 		ScheduleTime.call(this, hour, minute);
 	};
 
@@ -468,8 +548,8 @@ var ScheduleStartTime = (function() {
 })();
 var ScheduleFinishTime = (function() {
 	var ScheduleFinishTime = function() {
-		hour = Number(SchedulingForm.finishHour.value) || 0;
-		minute = Number(SchedulingForm.finishMinute.value) || 0;
+		var hour = Number(SchedulingForm.finishHour.value) || 0;
+		var minute = Number(SchedulingForm.finishMinute.value) || 0;
 		ScheduleTime.call(this, hour, minute);
 	};
 
@@ -481,9 +561,16 @@ var ScheduleFinishTime = (function() {
 })();
 
 var ScheduleStartPoint = (function() {
-	var ScheduleStartPoint = function() {
-		hour = SchedulingForm.startPointHour.value;
-		minute = SchedulingForm.startPointMinute.value;
+	var ScheduleStartPoint = function(time/*Object*/) {
+		var hour, minute;
+		if(typeOf(time) === 'Object') {
+			hour = time.hour;
+			minute = time.minute;
+		}else {
+			hour = SchedulingForm.startPointHour.value;
+			minute = SchedulingForm.startPointMinute.value;
+		}
+
 		if(hour === '' || !ScheduleTime.isTime(Number(hour))) {
 			hour = null;
 		}else {
@@ -492,7 +579,7 @@ var ScheduleStartPoint = (function() {
 		if(minute === '' || !ScheduleTime.isTime(Number(minute))) {
 			minute = null;
 		}else {
-			minute = ScheduleTime.fixMinute(Number(minute));
+			minute = ScheduleTime.fixSimpleMinute(Number(minute));
 		}
 
 		Object.defineProperties(this, {
@@ -522,6 +609,129 @@ var ScheduleStartPoint = (function() {
 
 	return ScheduleStartPoint;
 })();
+
+var ScheduleHourForm = (function() {
+	var ScheduleHourForm = function(element) {
+		if(element.getAttribute('type') !== 'number') {
+			throw new TypeError();
+		}
+
+		Object.defineProperties(this, {
+			element: {value: element},
+			handler: {value: new Handler(element)},
+		});
+	};
+
+	ScheduleHourForm.prototype.increment = function() {
+		var hour = Number(this.element.value);
+		if(!ScheduleTime.isTime(hour) || hour < 0 || hour >= 23) {
+			this.element.value = '0';
+			return;
+		}
+		this.element.value = hour + 1;
+		return;
+	};
+	ScheduleHourForm.prototype.decrement = function() {
+		var hour = Number(this.element.value);
+		if(!ScheduleTime.isTime(hour) || hour <= 0 || hour > 23) {
+			this.element.value = '23';
+			return;
+		}
+		this.element.value = hour - 1;
+		return;
+	};
+
+	ScheduleHourForm.prototype.addFocusListener = function() {
+		this.handler.addListener('focus', function() {
+			var mousewheel = 'onwheel' in document ? 'wheel' : 'onmousewheel' in document ? 'mousewheel' : 'DOMMouseScroll';
+			var handler = new Handler(this.element);
+			handler.addListener(mousewheel, mousewheelListener.bind(this), false);
+
+			handler.addListener('blur', function() {
+				handler.removeAllListener();
+			}, false);
+		}.bind(this), false);
+	};
+
+	function mousewheelListener(e) {
+		var delta = e.deltaY ? -(e.deltaY) : e.wheelDelta ? e.wheelDelta : -(e.detail);
+		if(delta < 0) {
+			//下にスクロールした場合の処理
+			e.preventDefault();
+			e.stopPropagation();
+			this.decrement();
+		}else if(delta > 0) {
+			//上にスクロールした場合の処理
+			e.preventDefault();
+			e.stopPropagation();
+			this.increment();
+		}
+	}
+
+	return ScheduleHourForm;
+})();
+
+var ScheduleMinuteForm = (function() {
+	var ScheduleMinuteForm = function(element) {
+		if(element.getAttribute('type') !== 'number') {
+			throw new TypeError();
+		}
+
+		Object.defineProperties(this, {
+			element: {value: element},
+			handler: {value: new Handler(element)},
+		});
+	};
+
+	ScheduleMinuteForm.prototype.increment = function() {
+		var minute = Math.floor(Number(this.element.value) / 15);
+		if(!ScheduleTime.isTime(minute) || minute < 0 || minute >= 3) {
+			this.element.value = '0';
+			return;
+		}
+		this.element.value = minute * 15 + 15;
+		return;
+	};
+	ScheduleMinuteForm.prototype.decrement = function() {
+		var minute = Math.floor(Number(this.element.value) / 15);
+		if(!ScheduleTime.isTime(minute) || minute <= 0 || minute > 3) {
+			this.element.value = '45';
+			return;
+		}
+		this.element.value = minute * 15 - 15;
+		return;
+	};
+
+	ScheduleMinuteForm.prototype.addFocusListener = function() {
+		this.handler.addListener('focus', function() {
+			var mousewheel = 'onwheel' in document ? 'wheel' : 'onmousewheel' in document ? 'mousewheel' : 'DOMMouseScroll';
+			var handler = new Handler(this.element);
+			handler.addListener(mousewheel, mousewheelListener.bind(this), false);
+
+			handler.addListener('blur', function() {
+				handler.removeAllListener();
+			}, false);
+		}.bind(this), false);
+	};
+
+	function mousewheelListener(e) {
+		var delta = e.deltaY ? -(e.deltaY) : e.wheelDelta ? e.wheelDelta : -(e.detail);
+		if(delta < 0) {
+			//下にスクロールした場合の処理
+			e.preventDefault();
+			e.stopPropagation();
+			this.decrement();
+		}else if(delta > 0) {
+			//上にスクロールした場合の処理
+			e.preventDefault();
+			e.stopPropagation();
+			this.increment();
+		}
+	}
+
+	return ScheduleMinuteForm;
+})();
+
 var ScheduleColor = (function() {
 	var ScheduleColor = function(color) {
 		Object.defineProperty(this, 'color', {value: color});
@@ -575,7 +785,7 @@ var ScheduleFontColor = (function() {
 })();
 var ScheduleLineColor = (function() {
 	var ScheduleLineColor = function() {
-		color = SchedulingForm.lineColor.value;
+		var color = SchedulingForm.lineColor.value;
 		if(!ScheduleColor.isColor(color)) {
 			color = SubstituteSchedule.lineColor;
 		}
@@ -596,6 +806,414 @@ var ScheduleLineColor = (function() {
 	}
 
 	return ScheduleLineColor;
+})();
+
+//Colorクラス;
+var Color = (function() {
+	//コンストラクタ;
+	//colorコードを引数に取る;
+	var Color = function(color) {
+		//colorコードが不正であればエラーを返す;
+		if(!Color.isColor(color)) {
+			throw new TypeError();
+		}
+
+		Object.defineProperties(this, {
+			color: {
+				get: function() {
+					return color;
+				},
+				set: function(value) {
+					if(Color.isColor(value)) {
+						color = value;
+					}
+				},
+				enumerable: true,
+				configurable: false,
+			},
+		});
+	};
+
+	//colorコードの"#"を除いた16進数で表された部分を文字列で返す;
+	Color.prototype.getRGB = function() {
+		return this.color.replace('#', '');
+	};
+
+	//RGBのRの値を0~255の10進数で返す;
+	Color.prototype.getRed = function() {
+		var rgb = this.getRGB();
+		if(rgb.length === 3) {
+			var red = rgb.slice(0, 1);
+			red = red + red;
+		}else {
+			var red = rgb.slice(0, 2);
+		}
+		return parseInt(red, 16);
+	};
+
+	//RGBのGの値を0~255の10進数で返す;
+	Color.prototype.getGreen = function() {
+		var rgb = this.getRGB();
+		if(rgb.length === 3) {
+			var green = rgb.slice(1, 2);
+			green = green + green;
+		}else {
+			var green = rgb.slice(2, 4);
+		}
+		return parseInt(green, 16);
+	};
+
+	//RGBのBの値を0~255の10進数で返す;
+	Color.prototype.getBlue = function() {
+		var rgb = this.getRGB();
+		if(rgb.length === 3) {
+			var blue = rgb.slice(2, 3);
+			blue = blue + blue;
+		}else {
+			var blue = rgb.slice(4, 6);
+		}
+		return parseInt(blue, 16);
+	};
+
+	//明度を返す;
+	Color.prototype.getBrightness = function() {
+		var red = this.getRed();
+		var green = this.getGreen();
+		var blue = this.getBlue();
+
+		return ((red * 299) + (green * 587) + (blue * 114)) / 1000;
+	};
+
+	//明るいか暗いかの真偽値を返す;
+	//明るければtrue;
+	//基準は明度127.5;
+	Color.prototype.isBright = function() {
+		return (this.getBrightness() > 255 / 2) ? true : false;
+	};
+
+	//視認性を確保するため明度差125のカラーコードを返す;
+	//小数点切り捨てのため正確には明度差は125以下になる;
+	Color.prototype.getBrightnessDifference125Color = function() {
+		var difference = 125;
+		//各色の明度の補正値;
+		//色を変換する時に使う;
+		var redCorrection = 299;
+		var greenCorrection = 587;
+		var blueCorrection = 114;
+
+		//各色に加えるまたは減らすべき色の値;
+		//基本的に各色125ずつ変化させる;
+		//変化出来ない場合各色に変換する;
+		var redRemainder = difference;
+		var greenRemainder = difference;
+		var blueRemainder = difference;
+
+		//現在の各色を取得;
+		var red = this.getRed();
+		var green = this.getGreen();
+		var blue = this.getBlue();
+
+		if(this.isBright()) {
+			//明るい時の処理;
+			//明度125暗くなる;
+			//各色を0に近づけていく;
+			while(redRemainder + greenRemainder + blueRemainder > 0) {
+				if(red - redRemainder < 0) {
+					//redをこれ以上暗くできない時の処理;
+					redRemainder = redRemainder - red;
+					red = 0;
+					//余りのredを各色に変換し振り分ける;
+					greenRemainder += changeColor(redCorrection, greenCorrection, redRemainder / 2);
+					blueRemainder += changeColor(redCorrection, blueCorrection, redRemainder / 2);
+					redRemainder = 0;
+				}else {
+					red = red - redRemainder;
+					redRemainder = 0;
+				}
+				if(green - greenRemainder < 0) {
+					//greenをこれ以上暗くできない時の処理;
+					greenRemainder = greenRemainder - green;
+					green = 0;
+					//余りのgreenを各色に変換し振り分ける;
+					blueRemainder += changeColor(greenCorrection, blueCorrection, greenRemainder / 2);
+					redRemainder += changeColor(greenCorrection, redCorrection, greenRemainder / 2);
+					greenRemainder = 0;
+				}else {
+					green = green - greenRemainder;
+					greenRemainder = 0;
+				}
+				if(blue - blueRemainder < 0) {
+					//blueをこれ以上暗くできない時の処理;
+					blueRemainder = blueRemainder - blue;
+					blue = 0;
+					//余りのblueを各色に変換し振り分ける;
+					redRemainder += changeColor(blueCorrection, redCorrection, blueRemainder / 2);
+					greenRemainder += changeColor(blueCorrection, greenCorrection, blueRemainder / 2);
+					blueRemainder = 0;
+				}else {
+					blue = blue - blueRemainder;
+					blueRemainder = 0;
+				}
+			}
+		}else {
+			//暗い時の処理;
+			//明度125明るくなる;
+			//各色を255(0xff)に近づけていく;
+			while(redRemainder + greenRemainder + blueRemainder > 0) {
+				if(red + redRemainder > 0xff) {
+					//redをこれ以上明るくできない時の処理;
+					redRemainder = redRemainder - (0xff - red);
+					red = 0xff;
+					//余りのredを各色に変換し振り分ける;
+					greenRemainder += changeColor(redCorrection, greenCorrection, redRemainder / 2);
+					blueRemainder += changeColor(redCorrection, blueCorrection, redRemainder / 2);
+					redRemainder = 0;
+				}else {
+					red = red + redRemainder;
+					redRemainder = 0;
+				}
+				if(green + greenRemainder > 0xff) {
+					//greenをこれ以上明るくできない時の処理;
+					greenRemainder = greenRemainder - (0xff - green);
+					green = 0xff;
+					//余りのgreenを各色に変換し振り分ける;
+					blueRemainder += changeColor(greenCorrection, blueCorrection, greenRemainder / 2);
+					redRemainder += changeColor(greenCorrection, redCorrection, greenRemainder / 2);
+					greenRemainder = 0;
+				}else {
+					green = green + greenRemainder;
+					greenRemainder = 0;
+				}
+				if(blue + blueRemainder > 0xff) {
+					//blueをこれ以上明るくできない時の処理;
+					blueRemainder = blueRemainder - (0xff - blue);
+					blue = 0xff;
+					//余りのblueを各色に変換し振り分ける;
+					redRemainder += changeColor(blueCorrection, redCorrection, blueRemainder / 2);
+					greenRemainder += changeColor(blueCorrection, greenCorrection, blueRemainder / 2);
+					blueRemainder = 0;
+				}else {
+					blue = blue + blueRemainder;
+					blueRemainder = 0;
+				}
+			}
+		}
+		//カラーコードに変換して返す;
+		return '#' + Color.convertedToRGB(red, green, blue);
+
+		//各色を変換するための関数;
+		function changeColor(fromColorCorrection, toColorCorrection, color) {
+			//ここで小数点を切り捨てるため、正確さが多少失われる;
+			return Math.floor(fromColorCorrection / toColorCorrection * color);
+		}
+	};
+
+	//カラーコードに1を足す;
+	Color.prototype.increment = function() {
+		var rgb = this.getRGB();
+		if(rgb.length === 3) {
+			rgb = increment3digitRGB(rgb);
+		}else {
+			rgb = increment6digitRGB(rgb);
+		}
+		return this.color = '#' + rgb;
+	};
+	//カラーコードに1を引く;
+	Color.prototype.decrement = function() {
+		var rgb = this.getRGB();
+		if(rgb.length === 3) {
+			rgb = decrement3digitRGB(rgb);
+		}else {
+			rgb = decrement6digitRGB(rgb);
+		}
+		return this.color = '#' + rgb;
+	};
+
+	//RGB3桁の省略形のインクリメント関数;
+	function increment3digitRGB(rgb) {
+		var numRGB = parseInt(rgb, 16);
+		if(numRGB >= 0xfff) {
+			return '000';
+		}
+		numRGB += 1;
+		rgb = numRGB.toString(16);
+		//0埋め;
+		while(rgb.length < 3) {
+			rgb = '0' + rgb;
+		}
+
+		return rgb;
+	}
+	function increment6digitRGB(rgb) {
+		var numRGB = parseInt(rgb, 16);
+		if(numRGB >= 0xffffff) {
+			return '000000';
+		}
+		numRGB += 1;
+		rgb = numRGB.toString(16);
+		//0埋め;
+		while(rgb.length < 6) {
+			rgb = '0' + rgb;
+		}
+
+		return rgb;
+	}
+
+	//RGB3桁の省略形のデクリメント関数;
+	function decrement3digitRGB(rgb) {
+		var numRGB = parseInt(rgb, 16);
+		if(numRGB <= 0) {
+			return 'fff';
+		}
+		numRGB -= 1;
+		rgb = numRGB.toString(16);
+		//0埋め;
+		while(rgb.length < 3) {
+			rgb = '0' + rgb;
+		}
+
+		return rgb;
+	}
+	function decrement6digitRGB(rgb) {
+		var numRGB = parseInt(rgb, 16);
+		if(numRGB <= 0) {
+			return 'ffffff';
+		}
+		numRGB -= 1;
+		rgb = numRGB.toString(16);
+		//0埋め;
+		while(rgb.length < 6) {
+			rgb = '0' + rgb;
+		}
+
+		return rgb;
+	}
+
+	//正当なcolorコードか真偽を返す;
+	Color.isColor = function(colorCode) {
+		var reg = new RegExp(/^#([\da-fA-F]{6}|[\da-fA-F]{3})$/);
+		return reg.test(colorCode);
+	};
+
+	//10進数のred,green,blueを16進数で表したRGBに変換し、その文字列を返す;
+	Color.convertedToRGB = function(red, green, blue) {
+		function convert(color) {
+			color = color.toString(16);
+			while(color.length < 2) {
+				color = '0' + color;
+			}
+			return color;
+		}
+		
+		return convert(red) + convert(green) + convert(blue);
+	}
+
+	return Color;
+})();
+
+//ColorFormクラス;
+var ColorForm = (function() {
+	//コンストラクタ;
+	//input[type="color"]の要素を引数に取る;
+	//baseColorは任意;
+	var ColorForm = function(element, baseColor) {
+		//elementがcolorフォームでないならエラーを返す;
+		if(element.getAttribute('type') !== 'color') {
+			throw new TypeError();
+		}
+
+		//baseColorが不正であればbaseColorは白になる;
+		if(!Color.isColor(baseColor)) {
+			baseColor = "#ffffff"
+		}
+
+		//色はcolorクラスで管理する;
+		Object.defineProperties(this, {
+			element: {value: element},
+			color: {value: new Color(baseColor)},
+			handler: {value: new Handler(element)},
+			baseColor: {value: baseColor},
+		});
+	};
+
+	//focus時のイベントリスナー
+	//focus時以外は発火させないためfocus時に他のイベントを登録し,blur時に定義したイベントを全て消す;
+	ColorForm.prototype.addFocusListener = function() {
+		//firefoxとchromeとsafariは発火させない;
+		var userAgent = window.navigator.userAgent.toLowerCase();
+		if(userAgent.indexOf('firefox') != -1) {
+			return;
+		}else if(userAgent.indexOf('chrome') != -1) {
+			return;
+		}else if(userAgent.indexOf('safari') != -1) {
+			return;
+		}
+
+		this.handler.addListener('focus', function() {
+			this.setColor();
+			this.setStyle();
+
+			//各ブラウザのmousewheelイベント統一する;
+			var mousewheel = 'onwheel' in document ? 'wheel' : 'onmousewheel' in document ? 'mousewheel' : 'DOMMouseScroll';
+			var handler = new Handler(this.element);
+			handler.addListener(mousewheel, mousewheelListener.bind(this), false);
+			handler.addListener('keyup', keyupListener.bind(this), false);
+
+			handler.addListener('blur', function() {
+				handler.removeAllListener();
+			}, false);
+		}.bind(this), false);
+	};
+
+	//マウスホイールイベント;
+	//ホイールでカラーコードを加減し、背景色と文字色を変える;
+	function mousewheelListener(e) {
+		var delta = e.deltaY ? -(e.deltaY) : e.wheelDelta ? e.wheelDelta : -(e.detail);
+		if(delta < 0) {
+			//下にスクロールした場合の処理
+			e.preventDefault();
+			this.decrement();
+			this.setStyle();
+		}else if(delta > 0) {
+			//上にスクロールした場合の処理
+			e.preventDefault();
+			this.increment();
+			this.setStyle();
+		}
+	};
+
+	function keyupListener() {
+		this.setColor();
+		this.setStyle();
+	}
+
+	ColorForm.prototype.getColor = function() {
+		return this.color.color;
+	};
+
+	//現在のelement.valueをcolorオブジェクトにセットする;
+	ColorForm.prototype.setColor = function() {
+		this.color.color = (Color.isColor(this.element.value)) ? this.element.value : this.baseColor;
+	};
+
+	ColorForm.prototype.increment = function() {
+		this.color.increment();
+		this.element.value = this.getColor();
+	};
+	ColorForm.prototype.decrement = function() {
+		this.color.decrement();
+		this.element.value = this.getColor();
+	};
+
+	//背景色と文字色を変更する;
+	//背景色はvalueと同じ;
+	//文字色は背景色の明度差125の色;
+	ColorForm.prototype.setStyle = function() {
+		this.element.style.backgroundColor = this.getColor();
+		this.element.style.color = this.color.getBrightnessDifference125Color();
+	};
+
+	return ColorForm;
 })();
 
 //class;
@@ -620,17 +1238,17 @@ var SchedulingButton = (function() {
 	return SchedulingButton;
 })();
 
-var BackButton = (function() {
-	var BackButton = function() {
-		var button = SchedulingForm.backButton;
+var UndoButton = (function() {
+	var UndoButton = function() {
+		var button = SchedulingForm.undoButton;
 		SchedulingButton.call(this, button);
 	};
 
-	BackButton.prototype = Object.create(SchedulingButton.prototype, {
-		constructor: {value: BackButton},
+	UndoButton.prototype = Object.create(SchedulingButton.prototype, {
+		constructor: {value: UndoButton},
 	});
 
-	return BackButton;
+	return UndoButton;
 })();
 
 var RedoButton = (function() {
@@ -711,17 +1329,17 @@ var AllRemoveButton = (function() {
 	return AllRemoveButton;
 })();
 
-var AllUndoButton = (function() {
-	var AllUndoButton = function() {
-		var button = SchedulingForm.allUndoButton;
+var AllRestoreButton = (function() {
+	var AllRestoreButton = function() {
+		var button = SchedulingForm.allRestoreButton;
 		SchedulingButton.call(this, button);
 	};
 
-	AllUndoButton.prototype = Object.create(SchedulingButton.prototype, {
-		constructor: {value: AllUndoButton},
+	AllRestoreButton.prototype = Object.create(SchedulingButton.prototype, {
+		constructor: {value: AllRestoreButton},
 	});
 
-	return AllUndoButton;
+	return AllRestoreButton;
 })();
 
 var EditButton = (function() {
@@ -748,16 +1366,30 @@ var RemoveButton = (function() {
 	return RemoveButton;
 })();
 
-var UndoButton = (function() {
-	var UndoButton = function(button) {
+var RestoreButton = (function() {
+	var RestoreButton = function(button) {
 		SchedulingButton.call(this, button);
 	};
 
-	UndoButton.prototype = Object.create(SchedulingButton.prototype, {
-		constructor: {value: UndoButton},
+	RestoreButton.prototype = Object.create(SchedulingButton.prototype, {
+		constructor: {value: RestoreButton},
 	});
 
-	return UndoButton;
+	return RestoreButton;
+})();
+
+
+var ImageDownloadButton = (function() {
+	var ImageDownloadButton = function() {
+		var button = SchedulingForm.imageDownloadButton;
+		SchedulingButton.call(this, button);
+	};
+
+	ImageDownloadButton.prototype = Object.create(SchedulingButton.prototype, {
+		constructor: {value: ImageDownloadButton},
+	});
+
+	return ImageDownloadButton;
 })();
 
 var SchedulingData = (function() {
@@ -956,17 +1588,17 @@ var Scheduler = (function() {
 			}
 		};
 
-		this.goBack = function() {
-			daySchedule = history.goBack();
+		this.undo = function() {
+			if(!history.undoes()) {
+				return;
+			}
+			daySchedule = history.undo();
 		};
 		this.redo = function() {
+			if(!history.redoes()) {
+				return;
+			}
 			daySchedule = history.redo();
-		};
-		this.goesBack = function() { //Boolean;
-			return history.goesBack();
-		};
-		this.redoes = function() { //Boolean;
-			return history.redoes();
 		};
 
 
@@ -1020,14 +1652,14 @@ var HistoryManager = (function() {
 		this.redoList.length = 0;
 		return this;
 	};
-	HistoryManager.prototype.goesBack = function() {
+	HistoryManager.prototype.undoes = function() {
 		return this.history.length > 1;
 	};
 	HistoryManager.prototype.redoes = function() {
 		return this.redoList.length > 0;
 	};
-	HistoryManager.prototype.goBack = function() {
-		if(this.goesBack()) {
+	HistoryManager.prototype.undo = function() {
+		if(this.undoes()) {
 			this.redoList.push(this.history.pop());
 		}
 		return this.getEnd();
@@ -1368,10 +2000,6 @@ var ScheduleDrawer = (function() {
 				writable: true,
 				configurable: true,
 			},
-			//svgのネームスペース;
-			NS: {
-				value: 'http://www.w3.org/2000/svg',
-			},
 			//一つのschedule(15分)の角度;
 			oneScheduleDegree: {
 				value: 360 / 96, //3.15;
@@ -1418,6 +2046,23 @@ var ScheduleDrawer = (function() {
 				writable: true,
 				configurable: true,
 			},
+			//線の色;
+			lineColor: {
+				value: null,
+				writable: true,
+				configurable: true,
+			},
+			//scheduleNameが入るプロパティ;
+			text: {
+				value: null,
+				writable: true,
+				configurable: true,
+			},
+			fontColor: {
+				value: null,
+				writable: true,
+				configurable: true,
+			},
 		});
 		//this.oneScheduleRadian = this.oneScheduleDegree / 180 * Math.PI;
 	};
@@ -1436,19 +2081,45 @@ var ScheduleDrawer = (function() {
 	ScheduleDrawer.prototype.setLineColor = function() {
 		this.lineColor = this.formatSchedule.lineColor;
 	};
+	ScheduleDrawer.prototype.setText = function() {
+		this.text = this.currentSchedule.name;
+	};
+	ScheduleDrawer.prototype.setFontColor = function() {
+		this.fontColor = this.currentSchedule.fontColor;
+	};
+
+	//currentScheduleを円として描くか扇形として描くかの真偽値を返す;
+	ScheduleDrawer.prototype.isCircle = function() {
+		return this.formatSchedule.length === 1;
+	};
+
+	return ScheduleDrawer;
+})();
+
+var ScheduleSvgDrawer = (function() {
+	var ScheduleSvgDrawer = function(formatSchedule) {
+		ScheduleDrawer.call(this, formatSchedule);
+
+		Object.defineProperties(this, {
+			//svgのネームスペース;
+			NS: {value: 'http://www.w3.org/2000/svg'},
+		});
+	};
+
+	ScheduleSvgDrawer.prototype = Object.create(ScheduleDrawer.prototype, {
+		constructor: {value: ScheduleSvgDrawer},
+	});
+
 	//円または扇形全ての線の色を塗る;
-	ScheduleDrawer.prototype.paintLineColor = function() {
+	ScheduleSvgDrawer.prototype.paintLineColor = function() {
 		this.setLineColor();
 
 		var arcGroup = this.canvas.querySelector('.arc-group');
 		arcGroup.setAttributeNS(null, 'stroke', this.lineColor);
 	};
-	//currentScheduleを円として描くか扇形として描くかの真偽値を返す;
-	ScheduleDrawer.prototype.isCircle = function() {
-		return this.formatSchedule.length === 1;
-	};
+
 	//currentScheduleを扇形として作り、path要素を返す;
-	ScheduleDrawer.prototype.createArc = function() {
+	ScheduleSvgDrawer.prototype.createArc = function() {
 		//円弧の始まりの座標;
 		var startX = this.cx + this.r * Math.sin(this.startDegree / 180 * Math.PI);
 		var startY = this.cy - this.r * Math.cos(this.startDegree / 180 * Math.PI);
@@ -1472,7 +2143,7 @@ var ScheduleDrawer = (function() {
 		return path;
 	};
 	//currentScheduleを円として作り、circle要素を返す;
-	ScheduleDrawer.prototype.createCircle = function() {
+	ScheduleSvgDrawer.prototype.createCircle = function() {
 		var circle = document.createElementNS(this.NS, 'circle');
 		circle.setAttributeNS(null, 'cx', this.cx);
 		circle.setAttributeNS(null, 'cy', this.cy);
@@ -1482,7 +2153,7 @@ var ScheduleDrawer = (function() {
 		return circle;
 	};
 	//svg要素の子要素を全て消す;
-	ScheduleDrawer.prototype.renewCanvas = function() {
+	ScheduleSvgDrawer.prototype.renewCanvas = function() {
 		var child;
 		while(child = this.canvas.firstChild) {
 			this.canvas.removeChild(child);
@@ -1490,7 +2161,7 @@ var ScheduleDrawer = (function() {
 	};
 
 	//scheduleを円グラフ化して、その要素が入っているg要素を返す;
-	ScheduleDrawer.prototype.createPieChart = function() {
+	ScheduleSvgDrawer.prototype.createPieChart = function() {
 		//g要素を作成;
 		var arcGroup = document.createElementNS(this.NS, 'g');
 		arcGroup.setAttributeNS(null, 'class', 'arc-group');
@@ -1519,7 +2190,7 @@ var ScheduleDrawer = (function() {
 	};
 
 	//svgにscheduleを円グラフ化した要素を加え、表示する;
-	ScheduleDrawer.prototype.draw = function() {
+	ScheduleSvgDrawer.prototype.draw = function() {
 		//svgをまっさらに;
 		this.renewCanvas();
 		//円グラフを表示する;
@@ -1527,53 +2198,65 @@ var ScheduleDrawer = (function() {
 		this.paintLineColor();
 	};
 
-	return ScheduleDrawer;
+	return ScheduleSvgDrawer;
 })();
 
-//メインのスケジュールを表示する要素;
+var MainScheduleValue = (function() {
+	var MainScheduleValue = function() {
+		this.width = 620;
+		this.height = 620;
+		this.strokeWidth = 5;
+		this.r = 250 - this.strokeWidth / 2;
+		this.cx = this.width / 2;
+		this.cy = this.height / 2;
+
+		this.textR = this.r * 0.8;
+		this.fontSize = 12;
+
+		this.clockR = this.r * 1.1;
+		this.clockFontSize = this.fontSize * 2;
+		this.clockFontColor = SubstituteSchedule.fontColor;
+	};
+
+	return new MainScheduleValue();
+})();
+
+//メインのスケジュールを表示するクラス;
 var MainScheduleDrawer = (function() {
 	var MainScheduleDrawer = function(formatSchedule) {
-		ScheduleDrawer.call(this, formatSchedule);
+		ScheduleSvgDrawer.call(this, formatSchedule);
 
 		Object.defineProperties(this, {
 			canvas: {
-				//width: 620px, height: 620px;
 				value: ScheduleDisplay.pieChart.querySelector('svg'),
-			},
-			//scheduleNameが入るプロパティ;
-			text: {
-				value: null,
-				writable: true,
 				configurable: true,
 			},
-			fontSize: {value: 8},
-			textAnchor: {value: 'middle'},
+			//box-sizing: border-boxは効かないから
+			//半径に線幅を加味する;
+			//線幅;
+			strokeWidth: {value: MainScheduleValue.strokeWidth},
 			//半径;
-			r: {value: 250},
+			r: {value: MainScheduleValue.r},
 			//中心点のX座標;
-			cx: {value: 310},
+			cx: {value: MainScheduleValue.cx},
 			//中心点のY座標;
-			cy: {value: 310},
-			strokeWidth: {value: 5},
-		});
-		Object.defineProperties(this, {
-			//text描画の半径
-			textR: {
-				value: this.r * 0.8,
-			},
+			cy: {value: MainScheduleValue.cy},
+			//text描画の半径;
+			textR: {value: MainScheduleValue.textR},
+			fontSize: {value: MainScheduleValue.fontSize},
+			textAnchor: {value: 'middle'},
+			//時刻表示部分の半径;
+			clockR: {value: MainScheduleValue.clockR},
+			clockFontSize: {value: MainScheduleValue.clockFontSize},
+			clockFontColor: {value: MainScheduleValue.clockFontColor},
 		});
 	};
 
-	MainScheduleDrawer.prototype = Object.create(ScheduleDrawer.prototype, {
+	MainScheduleDrawer.prototype = Object.create(ScheduleSvgDrawer.prototype, {
 		constructor: {value: MainScheduleDrawer},
 	});
 
-	MainScheduleDrawer.prototype.setText = function() {
-		this.text = this.currentSchedule.name;
-	};
-	MainScheduleDrawer.prototype.setFontColor = function() {
-		this.fill = this.currentSchedule.fontColor;
-	};
+
 
 	MainScheduleDrawer.prototype.createText = function() {
 		//テキストの座標を決めるための円の中心角.スケジュールの始点と終点の角度の中心の角度になる;
@@ -1587,7 +2270,8 @@ var MainScheduleDrawer = (function() {
 		text.textContent = this.text;
 		text.setAttributeNS(null, 'x', textX);
 		text.setAttributeNS(null, 'y', textY);
-		text.setAttributeNS(null, 'fill', this.fill);
+		text.setAttributeNS(null, 'fill', this.fontColor);
+		text.setAttributeNS(null, 'dominant-baseline', 'middle');
 
 		return text;
 	};
@@ -1595,6 +2279,8 @@ var MainScheduleDrawer = (function() {
 	MainScheduleDrawer.prototype.createPieChartText = function() {
 		var textGroup = document.createElementNS(this.NS, 'g');
 		textGroup.setAttributeNS(null, 'class', 'text-group');
+		textGroup.setAttributeNS(null, 'text-anchor', this.textAnchor);
+		textGroup.setAttributeNS(null, 'font-size', this.fontSize);
 		for(var i = 0; i < this.formatSchedule.length; i++) {
 			this.currentSchedule = this.formatSchedule[i];
 			this.setScheduleDegree();
@@ -1603,42 +2289,216 @@ var MainScheduleDrawer = (function() {
 
 			textGroup.appendChild(this.createText());
 		}
-		textGroup.setAttributeNS(null, 'text-anchor', this.textAnchor);
-		textGroup.setAttributeNS(null, 'font-size', this.fontSize);
 
 		return textGroup;
 	};
+
+	MainScheduleDrawer.prototype.createClockText = function(time) {
+		var degree = 360 / 24 * time;
+		var textX = this.cx + this.clockR * Math.sin(degree / 180 * Math.PI);
+		var textY = this.cy - this.clockR * Math.cos(degree / 180 * Math.PI);
+
+		var text = document.createElementNS(this.NS, 'text');
+		text.textContent = time;
+		text.setAttributeNS(null, 'x', textX);
+		text.setAttributeNS(null, 'y', textY);
+		text.setAttributeNS(null, 'dominant-baseline', 'middle');
+
+		return text;
+	};
+
+	MainScheduleDrawer.prototype.createClock = function() {
+		var clock = document.createElementNS(this.NS, 'g');
+		clock.setAttributeNS(null, 'class', 'clock');
+		clock.setAttributeNS(null, 'text-anchor', 'middle');
+		clock.setAttributeNS(null, 'font-size', this.clockFontSize);
+		clock.setAttributeNS(null, 'fill', this.clockFontColor);
+		var i = 0;
+		while(i < 24) {
+			clock.appendChild(this.createClockText(i));
+			i += 3;
+		}
+
+		return clock;
+	}
 
 	MainScheduleDrawer.prototype.draw = function() {
 		this.renewCanvas();
 		this.canvas.appendChild(this.createPieChart());
 		this.canvas.appendChild(this.createPieChartText());
+		this.canvas.appendChild(this.createClock());
 		this.paintLineColor();
 	};
 
 	return MainScheduleDrawer;
 })();
 
-var StorageScheduleDrawer = (function() {
-	var StorageScheduleDrawer = function(formatSchedule, canvas) {
+var MainScheduleCanvasDrawer = (function() {
+	var MainScheduleCanvasDrawer = function(formatSchedule) {
 		ScheduleDrawer.call(this, formatSchedule);
 
+		var canvas = document.createElement('canvas');
+		//svg要素と同じ(要リファクタリング);
+		canvas.setAttribute('width', MainScheduleValue.width * 2);
+		canvas.setAttribute('height', MainScheduleValue.height * 2);
+
 		Object.defineProperties(this, {
-			canvas: {
-				//width: 196px, height: 196px;
-				value: canvas,
-			},
+			canvas: {value: canvas},
+			ctx: {value: canvas.getContext('2d')},
+			strokeWidth: {value: MainScheduleValue.strokeWidth * 2},
 			//半径;
-			r: {value: 80},
+			r: {value: MainScheduleValue.r * 2},
 			//中心点のX座標;
-			cx: {value: 98},
+			cx: {value: MainScheduleValue.cx * 2},
 			//中心点のY座標;
-			cy: {value: 98},
-			strokeWidth: {value: 2},
+			cy: {value: MainScheduleValue.cy * 2},
+			//text描画の半径;
+			textR: {value: MainScheduleValue.textR * 2},
+			fontSize: {value: MainScheduleValue.fontSize * 2},
+			//時刻表示部分の半径;
+			clockR: {value: MainScheduleValue.clockR * 2},
+			clockFontSize: {value: MainScheduleValue.clockFontSize * 2},
+			clockFontColor: {value: MainScheduleValue.clockFontColor * 2},
 		});
 	};
 
-	StorageScheduleDrawer.prototype = Object.create(ScheduleDrawer.prototype, {
+	MainScheduleCanvasDrawer.prototype = Object.create(ScheduleDrawer.prototype, {
+		constructor: {value: MainScheduleCanvasDrawer},
+	});
+
+	MainScheduleCanvasDrawer.prototype.drawArc = function() {
+		var startRad = (this.startDegree - 90) / 180 * Math.PI;
+		var finishRad = (this.finishDegree - 90) / 180 * Math.PI;
+
+		this.ctx.beginPath();
+		this.ctx.moveTo(this.cx, this.cy);
+		this.ctx.arc(this.cx, this.cy, this.r, startRad, finishRad, false);
+		this.ctx.lineTo(this.cx, this.cy);
+		this.ctx.lineWidth = this.strokeWidth;
+		this.ctx.strokeStyle = this.lineColor;
+		this.ctx.fillStyle = this.fill;
+		this.ctx.fill();
+		this.ctx.stroke();
+		this.ctx.closePath();
+	};
+
+	MainScheduleCanvasDrawer.prototype.drawCircle = function() {
+		this.ctx.beginPath();
+		this.ctx.arc(this.cx, this.cy, this.r, 0, 2 * Math.PI, false);
+		this.ctx.lineWidth = this.strokeWidth;
+		this.ctx.strokeStyle = this.lineColor;
+		this.ctx.fillStyle = this.fill;
+		this.ctx.fill();
+		this.ctx.stroke();
+		this.ctx.closePath();
+	};
+
+	MainScheduleCanvasDrawer.prototype.drawPieChart = function() {
+		if(this.isCircle()) {
+			this.currentSchedule = this.formatSchedule[0];
+			this.setLineColor();
+			this.setBackColor();
+			this.drawCircle();
+		}else {
+			for(var i = 0; i < this.formatSchedule.length; i++) {
+				this.currentSchedule = this.formatSchedule[i];
+
+				this.setScheduleDegree();
+				this.setLineColor();
+				this.setBackColor();
+
+				this.drawArc();
+			}
+		}
+	};
+
+	MainScheduleCanvasDrawer.prototype.drawText = function() {
+		//テキストの座標を決めるための円の中心角.スケジュールの始点と終点の角度の中心の角度になる;
+		//例: スケジュールの始点50度、終点70度のときテキストの角度は60度;
+		var degree = this.startDegree + (this.finishDegree - this.startDegree) / 2;
+		//テキストの座標;
+		var textX = this.cx + this.textR * Math.sin(degree / 180 * Math.PI);
+		var textY = this.cy - this.textR * Math.cos(degree / 180 * Math.PI);
+
+		this.ctx.font = 'normal ' + this.fontSize + 'px ' + 'sans-serif';
+		this.ctx.fillStyle = this.fontColor;
+		this.ctx.textAlign = 'center';
+		this.ctx.textBaseline = 'middle';
+
+		this.ctx.fillText(this.text, textX, textY);
+	};
+
+	MainScheduleCanvasDrawer.prototype.drawPieChartText = function() {
+		for(var i = 0; i < this.formatSchedule.length; i++) {
+			this.currentSchedule = this.formatSchedule[i];
+
+			this.setScheduleDegree();
+			this.setFontColor();
+			this.setText();
+
+			this.drawText();
+		}
+	};
+
+	MainScheduleCanvasDrawer.prototype.drawClockText = function(time) {
+		var degree = 360 / 24 * time;
+		var textX = this.cx + this.clockR * Math.sin(degree / 180 * Math.PI);
+		var textY = this.cy - this.clockR * Math.cos(degree / 180 * Math.PI);
+
+		this.ctx.font = 'normal ' + this.clockFontSize + 'px ' + 'sans-serif';
+		this.ctx.fillStyle = this.clockFontColor;
+		this.ctx.textAlign = 'center';
+		this.ctx.textBaseline = 'middle';
+
+		this.ctx.fillText(time, textX, textY);
+	};
+
+	MainScheduleCanvasDrawer.prototype.drawClock = function() {
+		var i = 0;
+		while(i < 24) {
+			this.drawClockText(i);
+			i += 3;
+		}
+	};
+
+	MainScheduleCanvasDrawer.prototype.draw = function() {
+		this.drawPieChart();
+		this.drawPieChartText();
+		this.drawClock();
+	};
+
+	MainScheduleCanvasDrawer.prototype.getCanvas = function() {
+		return this.canvas;
+	};
+
+	return MainScheduleCanvasDrawer;
+})();
+
+var StorageScheduleDrawer = (function() {
+	var StorageScheduleDrawer = function(formatSchedule, canvas) {
+		ScheduleSvgDrawer.call(this, formatSchedule);
+
+		var width = 200;
+		var height = 200;
+		canvas.setAttribute('width', width);
+		canvas.setAttribute('height', height);
+
+		Object.defineProperties(this, {
+			canvas: {
+				value: canvas,
+			},
+			//円の線;
+			strokeWidth: {value: 2},
+			//半径((width - stroke) / 2);
+			r: {value: 99},
+			//中心点のX座標;
+			cx: {value: width / 2},
+			//中心点のY座標;
+			cy: {value: width / 2},
+		});
+	};
+
+	StorageScheduleDrawer.prototype = Object.create(ScheduleSvgDrawer.prototype, {
 		constructor: {value: StorageScheduleDrawer},
 	});
 
@@ -1703,8 +2563,9 @@ var ScheduleWriter = (function() {
 		this.detail = detail;
 	};
 
-	ScheduleWriter.prototype.createDT = function() {
+	ScheduleWriter.prototype.createTimeDT = function() {
 		var dt = document.createElement('dt');
+		dt.className = 'time';
 		dt.style.borderColor = this.borderColor;
 		dt.textContent = this.time;
 		return dt;
@@ -1712,12 +2573,14 @@ var ScheduleWriter = (function() {
 
 	ScheduleWriter.prototype.createNameDD = function() {
 		var dd = document.createElement('dd');
+		dd.className = 'name';
 		dd.textContent = this.name;
 		return dd;
 	};
 
 	ScheduleWriter.prototype.createDetailDD = function() {
 		var dd = document.createElement('dd');
+		dd.className = 'detail';
 		dd.innerHTML = this.detail;
 		return dd;
 	};
@@ -1731,9 +2594,14 @@ var ScheduleWriter = (function() {
 			this.setDetail();
 			this.setBorderColor();
 
-			draft.appendChild(this.createDT());
-			draft.appendChild(this.createNameDD());
-			draft.appendChild(this.createDetailDD());
+			var div = document.createElement('div');
+			div.className = 'time-schedule';
+
+			div.appendChild(this.createTimeDT());
+			div.appendChild(this.createNameDD());
+			div.appendChild(this.createDetailDD());
+
+			draft.appendChild(div);
 		}
 
 		return draft;
@@ -1766,7 +2634,7 @@ var ScheduleStorage = (function() {
 	};
 
 	ScheduleStorage.prototype.getKeys = function() {
-		return Object.keys(this.table);
+		return Object.keys(this.table).sort();
 	};
 	ScheduleStorage.prototype.getTrashKeys = function() {
 		return Object.keys(this.trashes);
@@ -1786,7 +2654,7 @@ var ScheduleStorage = (function() {
 		this.throwAwayTrash();
 		this.save();
 	};
-	ScheduleStorage.prototype.undo = function() {
+	ScheduleStorage.prototype.restore = function() {
 		for(key in this.trashes) {
 			this.table[key] = this.trashes[key];
 			delete this.trashes[key];
@@ -1894,7 +2762,7 @@ var StorageEditor = (function() {
 		return this.key;
 	};
 
-	StorageEditor.prototype.undo = function() {
+	StorageEditor.prototype.restore = function() {
 		this.table[this.key] = this.trashes[this.key];
 		delete this.trashes[this.key];
 
@@ -1956,7 +2824,7 @@ var StorageDisplay = (function() {
 		for(var i = 0; i < keys.length; i++) {
 			var key = keys[i];
 			var storageScheduleDisplayCreator = new StorageScheduleDisplayCreator(key);
-			storageScheduleDisplayCreator.undoListener();
+			storageScheduleDisplayCreator.restoreListener();
 		}
 	};
 
@@ -1992,7 +2860,7 @@ var StorageScheduleDisplayCreator = (function() {
 
 	StorageScheduleDisplayCreator.prototype.createTitle = function() {
 		var title = document.createElement('p');
-		title.className = 'storage-schedule-title';
+		title.className = 'title';
 		var storageEditor = new StorageEditor(this.key);
 		title.textContent = storageEditor.load().title;
 
@@ -2002,7 +2870,7 @@ var StorageScheduleDisplayCreator = (function() {
 	StorageScheduleDisplayCreator.prototype.createPieChart = function() {
 		var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 		svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-		svg.className = 'storage-schedule-pie-chart';
+		svg.setAttribute('class', 'pie-chart');
 
 		var storageEditor = new StorageEditor(this.key);
 		var scheduleExcludingDetailAnalyst = new ScheduleExcludingDetailAnalyst(storageEditor.load());
@@ -2037,6 +2905,7 @@ var StorageScheduleDisplayCreator = (function() {
 		scheduleDisplay.displaySchedule();
 		scheduleDisplay.changeTitle();
 
+		SchedulingForm.setStartPoint({hour: daySchedule.startPointHour, minute: ScheduleTime.fixMinute(daySchedule.startPointMinute)});
 		ScheduleStorage.editing = this.key;
 	}
 
@@ -2058,24 +2927,24 @@ var StorageScheduleDisplayCreator = (function() {
 
 		removeChildren(this.container);
 
-		this.container.appendChild(this.createUndoButton());
+		this.container.appendChild(this.createRestoreButton());
 	}
 
-	StorageScheduleDisplayCreator.prototype.createUndoButton = function() {
+	StorageScheduleDisplayCreator.prototype.createRestoreButton = function() {
 		var button = document.createElement('input');
 		button.setAttribute('type', 'button');
-		button.setAttribute('name', 'undo');
+		button.setAttribute('name', 'restore');
 		button.setAttribute('value', '元に戻す');
 
-		var undoButton = new UndoButton(button);
-		undoButton.addClickListener(this.undoListener.bind(this));
+		var restoreButton = new RestoreButton(button);
+		restoreButton.addClickListener(this.restoreListener.bind(this));
 
 		return button;
 	};
 
-	StorageScheduleDisplayCreator.prototype.undoListener = function() {
+	StorageScheduleDisplayCreator.prototype.restoreListener = function() {
 		var storageEditor = new StorageEditor(this.key);
-		storageEditor.undo();
+		storageEditor.restore();
 
 		this.overwrite();
 	}
@@ -2099,10 +2968,53 @@ var StorageScheduleDisplayCreator = (function() {
 })();
 
 
+var CanvasDownloader = (function() {
+	var CanvasDownloader = function(canvas) {
+		Object.defineProperties(this, {
+			canvas: {value: canvas},
+		});
+	};
+
+	CanvasDownloader.prototype.getBlob = function() {
+		var dataURL = this.canvas.toDataURL();
+		var binary = atob(dataURL.split(',')[1]);
+		var buffer = new Uint8Array(binary.length);
+		for(var i = 0, len = binary.length; i < len; i++) {
+			buffer[i] = binary.charCodeAt(i);
+		}
+
+		return new Blob([buffer.buffer], {type: 'image/png'});
+	};
+
+	CanvasDownloader.prototype.download = function() {
+		var title = new ScheduleTitle().getTitle();
+
+		var blob = this.getBlob();
+		//IEか否か;
+		if(window.navigator.msSaveOrOpenBlob) {
+			//IEの処理;
+			window.navigator.msSaveOrOpenBlob(blob, title + '.png');
+		}else {
+			//blobのURLを作成;
+			var url = window.URL.createObjectURL(blob);
+			var a = document.createElement('a');
+			a.href = url;
+			a.download = title;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			//破棄;
+			window.URL.revokeObjectURL(blob);
+		}
+	};
+
+	return CanvasDownloader;
+})();
+
+
 function typeOf(operand) {
 	return Object.prototype.toString.call(operand).slice(8, -1);
 }
-
 var clone = (function() {
 	function createMemo() {
 		return {
@@ -2234,6 +3146,13 @@ function removeChildren(element) {
 	}
 }
 
+//正当なcolorコードか真偽を返す;
+function isColor(colorCode) {
+	var reg = new RegExp(/^#([\da-fA-F]{6}|[\da-fA-F]{3})$/);
+	return reg.test(colorCode);
+}
+
+
 
 (function main() {
 	new ScheduleStorage().emptyTrashCan();
@@ -2247,4 +3166,17 @@ function removeChildren(element) {
 	scheduleDisplay.changeTitle();
 	scheduleDisplay.displaySchedule();
 	storageDisplay.display();
+
+	var colorFormElements = document.querySelectorAll('input[type="color"]');
+	for(var i = 0; i < colorFormElements.length; i++) {
+		new ColorForm(colorFormElements[i]).addFocusListener();
+	}
+	var hourFormElements = document.querySelectorAll('input[name="hour"]');
+	for(var i = 0; i < hourFormElements.length; i++) {
+		new ScheduleHourForm(hourFormElements[i]).addFocusListener();
+	}
+	var minuteFormElements = document.querySelectorAll('input[name="minute"]');
+	for(var i = 0; i < minuteFormElements.length; i++) {
+		new ScheduleMinuteForm(minuteFormElements[i]).addFocusListener();
+	}
 })();

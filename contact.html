@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>お問い合わせ</title>
+	<link rel="stylesheet" type="text/css" href="css/reset.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<script defer src="js/AnimationController.js"></script>
+	<script defer src="js/ScrollTop.js"></script>
+	<script defer src="js/pjax.js"></script>
+	<script defer class="async" src="js/AjaxMailForm.js"></script>
+</head>
+<body>
+	<div id="wrapper">
+		<header id="header">
+			<div id="header-inner">
+				<h1 id="site-title"><a class="home-link async" href="index.html">LifeLeader</a></h1>
+				<nav id="nav">
+					<ul>
+						<li><a class="async" href="about.html">LifeLeaderとは？</a></li>
+						<li><a class="async" href="use.html">使い方</a></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+		<div id="main">
+			<div id="main-inner">
+				<article class="article">
+					<header class="article-header">
+						<h1 class="article-title">お問い合わせ</h1>
+					</header>
+					<div class="article-content">
+						<form id="mail-form"  action="" method="POST">
+							<dl>
+								<dt>名前(必須)</dt><dd><input type="text" name="name" required></dd>
+								<dt>メール</dt><dd><input type="email" name="email"></dd>
+								<dt>件名</dt><dd><input type="text" name="subject"></dd>
+								<dt>内容(必須)</dt><dd><textarea name="message" cols="50" rows="10" required></textarea></dd>
+							</dl>
+							<input type="submit" value="送信">
+						</form>
+					</div>
+				</article>
+			</div><!-- main-inner -->
+			<div class="scroll-top-outer">
+				<a class="scroll-top" href="#top">
+					<span class="arrow">↑</span>
+				</a>
+			</div>
+		</div><!-- /main -->
+		<footer id="footer">
+			<div id="footer-inner">
+				<ul class="footer-nav">
+					<li><a class="async" href="index.html">ホーム</a></li>
+					<li><a href="https://github.com/webkatu/LifeLeader" target="_blank">GitHub</a></li>
+					<li><a class="async" href="contact.html">お問い合わせ</a></li>
+					<li><a href="http://webkatu.com" target="_blank">Webkatu.com</a></li>
+				</ul>
+			</div>
+		</footer>
+	</div>
+</body>
+</html>

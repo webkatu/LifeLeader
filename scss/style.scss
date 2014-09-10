@@ -1,0 +1,569 @@
+@charset 'utf-8';
+
+$mainWidth: 960px;
+$sidePadding: 10px;
+$defaultMargin: 20px;
+$mainInnerWidth: $mainWidth - $sidePadding * 2;
+$leftWidth: 620px;
+$rightWidth: 300px;
+
+$baseFontSize: 16px;
+$baseMiddleFontSize: 20px;
+$middleFontSize: 24px;
+$largeFontSize: 32px;
+$largeLargeFontSize: 48px;
+
+$baseLineHeight: 1.4;
+
+$baseColor: #fff;
+$subColor: #fdf7e2;
+$accentColor: #6d5450;
+
+$boxBorderSize: 5px;
+$boxPadding: 10px;
+
+$rightBoxInnerWidth: $rightWidth - ($boxBorderSize * 2 + $boxPadding * 2);
+$leftBoxInnerWidth: $leftWidth - ($boxBorderSize * 2 + $boxPadding * 2);
+$boxInnerBorderSize: 2px;
+$boxInnerPadding: 13px;
+$rightBoxInnerInnerWidth: $rightBoxInnerWidth - ($boxInnerPadding * 2 + $boxInnerBorderSize * 2);
+$leftBoxInnerInnerWidth: $leftBoxInnerWidth / 2 - ($boxInnerBorderSize * 2 + $boxInnerPadding * 2);
+
+$boxBorder: $boxBorderSize solid $accentColor;
+$baseBorder: $boxInnerBorderSize solid $accentColor;
+
+@mixin clearfix {
+	display: block;
+	clear: both;
+	content: '';
+}
+
+@mixin textEllipsis {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+p { margin-top: $baseFontSize; }
+
+a {
+	text-decoration: underline;
+	color: $accentColor;
+	background: $subColor;
+	&:hover {
+		text-shadow: 0 0 1px $accentColor;
+		transition: 0.2s;
+	}
+}
+@mixin resetAnchor {
+	a {
+		text-decoration: none;
+		color: inherit;
+		background: inherit;
+		&:hover {
+			text-shadow: none;
+			transition: none;
+		}
+		@content;
+	}
+}
+
+ul {
+	margin-left: 1em;
+	list-style-type: square;
+}
+
+svg {
+	display: block;
+	//box-sizing: content-box;
+}
+
+fieldset {
+	border: $baseBorder;
+	margin: 0;
+	padding: $boxInnerPadding;
+}
+
+$inputBorderSize: 2px;
+$inputPadding: 7px;
+$inputHeight: $baseFontSize + $inputBorderSize * 2 + $inputPadding * 2;
+input {
+	height: $inputHeight;
+	line-height: 1;
+}
+textarea {
+	line-height: 1.2;
+}
+input, textarea {
+	margin: 0;
+	padding: $inputPadding;
+	font-size: $baseFontSize;
+	color: $accentColor;
+	background-color: $baseColor;
+	border: $baseBorder;
+	&:focus {
+		background-color: $baseColor;
+		box-shadow: 0 0 1px 1px $accentColor;
+		outline: 0;
+		transition: box-shadow 0.2s;
+	}
+}
+
+input[type="color"] {
+	padding: 1px;
+	cursor: pointer;
+	background-color: $baseColor;
+	&:focus { box-shadow: none; }
+}
+
+input[type="button"],
+input[type="submit"] {
+	padding: $inputPadding;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+	background-color: $baseColor;
+	color: $accentColor;
+	&:hover {
+		background-color: $subColor;
+		transition: 0.2s;
+	}
+	&:active {
+		color: $subColor;
+		background-color: $accentColor;
+		transition: 0;
+	}
+	&:focus { box-shadow: none; }
+}
+$buttonHeight: $baseFontSize + $inputBorderSize * 2 + $inputPadding * 2;
+.button {
+	display: block;
+	width: $baseFontSize * 4.5;
+	height: $buttonHeight;
+	&::after { @include clearfix; }
+}
+.leftButton {
+	@extend .button;
+	float: left;
+	margin-left: $boxInnerPadding / 2;
+	&:first-of-type { margin-left: 0; }
+}
+.rightButton {
+	@extend .button;
+	float: right;
+}
+
+
+.display-none { display: none !important; }
+
+.lf0 { margin-top: 0 !important; }
+.lf1 { margin-top: $baseFontSize * 1 !important; }
+.lf2 { margin-top: $baseFontSize * 2 !important; }
+.lf3 { margin-top: $baseFontSize * 3 !important; }
+.lf4 { margin-top: $baseFontSize * 4 !important; }
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+::-moz-selection { color: $baseColor; background: $accentColor; }
+::selection      { color: $baseColor; background: $accentColor; }
+
+html { height: 100%; }
+body { height: 100%; }
+
+#wrapper {
+	width: 100%;
+	height: 100%;
+	color: $accentColor;
+	font-size: $baseFontSize;
+	word-wrap: break-word;
+	background-color: $baseColor;
+}
+
+.inner {
+	overflow: hidden;
+	width: $mainWidth;
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: $sidePadding;
+	padding-right: $sidePadding;
+}
+
+$headerHeight: 40px;
+$headerInnerHeight: $largeFontSize;
+$siteTitleWidth: $leftWidth;
+$navWidth: $mainInnerWidth - ($siteTitleWidth + $defaultMargin);
+#header {
+	height: $headerHeight;
+	background-color: $accentColor;
+	color: $baseColor;
+
+	@include resetAnchor;
+
+	#header-inner {
+		@extend .inner;
+		padding-top: 4px;
+		padding-bottom: 4px;
+		&::after { @include clearfix; }
+
+		#site-title {
+			float: left;
+			width: $siteTitleWidth;
+			font-size: $largeFontSize;
+		}
+
+		#nav {
+			position: relative;
+			float: right;
+			width: $navWidth;
+			height: $headerInnerHeight;
+			margin-left: $defaultMargin;
+
+			ul {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				margin-left: 0;
+				list-style: none;
+
+				li {
+					display: inline-block;
+					margin-left: $defaultMargin;
+					&:first-of-type { margin-left: 0; }
+				}
+			}
+		}
+	}
+}
+
+
+#main {
+	@extend .inner;
+	min-height: 100%;
+	margin-top: $defaultMargin;
+
+	#main-inner {
+		overflow: hidden;
+	}
+
+	.article {
+		float: left;
+		width: $leftWidth;
+		line-height: $baseLineHeight;
+
+		.article-title {
+			font-size: $middleFontSize;
+			border-bottom: $baseBorder;
+		}
+
+		.article-content { margin-top: $defaultMargin; }
+
+		.section1 {
+			margin-top: $largeLargeFontSize;
+
+			& > h1 { font-size: $baseMiddleFontSize; }
+
+			.section2 {
+				margin-left: $baseFontSize;
+				margin-top: $largeLargeFontSize;
+
+				& > h1 { font-size: $baseMiddleFontSize; }
+			}
+		}
+	}
+
+	.scroll-top-outer {
+		position: fixed;
+		margin-left: $mainWidth;
+		bottom: $defaultMargin * 2;
+
+		.scroll-top {
+			display: table;
+			width: 60px;
+			height: 60px;
+			font-size: $largeFontSize;
+			text-decoration: none;
+			opacity: 0.5;
+			border-radius: 50%;
+			&:hover { opacity: 1; }
+
+			span {
+				display: table-cell;
+				text-align: center;
+				vertical-align: middle;
+			}
+		}
+	}
+}
+
+#footer {
+	clear: both;
+	margin-top: $defaultMargin;
+	color: $baseColor;
+	background-color: $accentColor;
+
+	@include resetAnchor;
+
+	#footer-inner {
+		@extend .inner;
+		padding-top: 2px;
+		padding-bottom: 2px;
+
+		ul {
+			position: relative;
+			margin-left: 0;
+			list-style: none;
+
+			li {
+				display: inline-block;
+				margin-left: $defaultMargin;
+				&:first-of-type { margin-left: 0; }
+				&:last-of-type {
+					position: absolute;
+					right: 0;
+					bottom: 0;
+					margin-left: 0;
+				}
+			}
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+#mail-form {
+	input[type="text"],
+	input[type="email"] {
+		width: $baseFontSize * 15;
+	}
+	textarea {
+	}
+}
+
+
+
+.box {
+	padding: $boxPadding;
+	border: $boxBorder;
+	//border-radius: 5px;
+	background-color: $subColor;
+}
+
+.right-box {
+	@extend .box;
+	float: right;
+	width: $rightWidth;
+	margin-left: $defaultMargin;
+	&::after { @include clearfix; }
+}
+.left-box {
+	@extend .box;
+	width: $leftWidth;
+}
+
+#interface,
+#schedule-display-area,
+#storage-display-area {
+	line-height: 1;
+	p { margin-top: 0; }
+}
+
+$firstSpanWidth: $baseFontSize * 3.5;
+$timeSpanWidth: $baseFontSize * 1;
+$inputNumberWidth: $baseFontSize * 3.5;
+$timeLabelWidth: ($timeSpanWidth + $inputNumberWidth + $inputBorderSize * 2) * 2;
+$lastSpanWidth: $baseFontSize * 2;
+$lastSpanMargin: $rightBoxInnerInnerWidth - ($firstSpanWidth + $timeLabelWidth + $lastSpanWidth);
+$inputColorWidth: $rightBoxInnerInnerWidth - $firstSpanWidth;
+#interface {
+	@extend .right-box;
+
+	.scheduling-form {
+		background-color: $baseColor;
+
+		.schedule-title {
+			input[name="title"] { width: $rightBoxInnerInnerWidth; }
+		}
+
+		.schedule-content {
+			dt {
+				margin-top: $boxInnerPadding / 2;
+				&:first-of-type { margin-top: 0; }
+			}
+
+			label,
+			input[name="name"],
+			textarea[name="detail"] {
+				display: block;
+				width: $rightBoxInnerInnerWidth;
+			}
+		}
+
+		.schedule-time {
+			.wrapper {
+				width: $rightBoxInnerInnerWidth;
+				&:last-of-type { margin-top: $boxInnerPadding / 2; }
+
+				& > span:first-of-type {
+					display: inline-block;
+					width: $firstSpanWidth;
+				}
+
+				label.time {
+					span.hour,
+					span.minute {
+						display: inline-block;
+						width: $timeSpanWidth;
+					}
+					input[type="number"] {
+						width: $inputNumberWidth;
+					}
+				}
+
+				& > span:last-of-type {
+					display: inline-block;
+					width: $lastSpanWidth;
+					margin-left: $lastSpanMargin;
+				}
+			}
+		}
+
+		.schedule-color {
+			.wrapper {
+				width: $rightBoxInnerInnerWidth;
+				margin-top: $boxInnerPadding / 2;
+				&:first-of-type { margin-top: 0; }
+			}
+
+
+			span.color {
+				display: inline-block;
+				width: $firstSpanWidth;
+			}
+
+			input[type="color"] { width: $inputColorWidth; }
+		}
+
+		.scheduling-button {
+			input[name="add"] {
+				@extend .button;
+				width: $rightBoxInnerInnerWidth;
+			}
+			input[name="undo"] { @extend .leftButton; }
+			input[name="redo"] { @extend .leftButton; }
+			input[name="reset"] { @extend .rightButton; }
+			input[name="save"] { @extend .leftButton; }
+			input[name="overwrite"] { @extend .leftButton; }
+			input[name="all-remove"] {
+				@extend .rightButton;
+				color: $baseColor;
+				background-color: $accentColor;
+			}
+			input[name="all-restore"] { @extend .rightButton; }
+		}
+	}
+}
+
+#schedule-display-area {
+	float: left;
+	width: $leftWidth;
+
+	.scheduling-form-outer {
+		@extend .left-box;
+
+		.scheduling-form {
+			overflow: hidden;
+			background-color: $baseColor;
+	
+			.start-point {
+				float: left;
+				width: $leftBoxInnerWidth / 2;
+
+				.wrapper {
+					height: $inputHeight;
+					input[type="number"] { width: $inputNumberWidth; }
+				}
+			}
+
+			.download {
+				float: left;
+				width: $leftBoxInnerWidth / 2;
+
+				input[type="button"] {
+					@extend .rightButton;
+					width: $leftBoxInnerInnerWidth;
+				}
+				&::after { @include clearfix; }
+			}
+		}
+	}
+
+	.writing {
+		margin-top: $defaultMargin;
+		.schedule {
+			.time-schedule {
+				overflow: hidden;
+				clear: both;
+				margin-top: $middleFontSize;
+				&:first-of-type { margin-top: 0; }
+
+				.time {
+					float: left;
+					width: $middleFontSize * 6;
+					padding-left: $middleFontSize / 2;
+					font-size: $middleFontSize;
+					border-left: solid $middleFontSize $baseColor;
+				}
+				.name {
+					margin-left: $middleFontSize * 8;
+					font-size: $middleFontSize;
+				}
+
+				.detail {
+					font-size: $baseFontSize;
+					margin-left: $middleFontSize * 8;
+					margin-top: $middleFontSize / 3;
+				}
+			}
+		}
+	}
+}
+
+#storage-display-area {
+	@extend .right-box;
+	margin-top: $defaultMargin;
+
+	.storage-schedule {
+		overflow: hidden;
+		width: $rightBoxInnerWidth;
+		padding: $boxInnerPadding;
+		border-top: $baseBorder;
+		border-right: $baseBorder;
+		border-left: $baseBorder;
+		background-color: $baseColor;
+		&:last-of-type {
+			border-bottom: $baseBorder;
+		}
+
+		$rightBoxInnerInnerWidth: $rightBoxInnerWidth - ($boxInnerPadding * 2 + $boxInnerBorderSize * 2);
+		.title {
+			@include textEllipsis;
+			width: $rightBoxInnerInnerWidth;
+			//font-size: $middleFontSize;
+			border-bottom: $baseBorder;
+		}
+
+		.pie-chart {
+			display: block;
+			margin: $boxInnerPadding auto;
+		}
+
+		input[name="edit"] { @extend .leftButton; }
+		input[name="remove"] { @extend .rightButton; }
+		input[name="restore"] {
+			@extend .rightButton;
+			width: $rightBoxInnerInnerWidth;
+		}
+	}
+}

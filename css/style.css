@@ -1,147 +1,502 @@
-@charset 'utf-8';
-body {
-	width: 100%;
-	background: #fff;
-	color: #6D5450;
-	word-break: break-all;
+p {
+  margin-top: 16px;
+}
+
+a {
+  text-decoration: underline;
+  color: #6d5450;
+  background: #fdf7e2;
+}
+a:hover {
+  text-shadow: 0 0 1px #6d5450;
+  transition: 0.2s;
+}
+
+ul {
+  margin-left: 1em;
+  list-style-type: square;
+}
+
+svg {
+  display: block;
 }
 
 fieldset {
-	border: 2px groove #6D5450;
-	margin: 0;
-	padding: 8px;
+  border: 2px solid #6d5450;
+  margin: 0;
+  padding: 13px;
+}
+
+input {
+  height: 34px;
+  line-height: 1;
+}
+
+textarea {
+  line-height: 1.2;
 }
 
 input, textarea {
-	background: #fff;
-	color: #6D5450;
-	border-color: #6D5450;
+  margin: 0;
+  padding: 7px;
+  font-size: 16px;
+  color: #6d5450;
+  background-color: #fff;
+  border: 2px solid #6d5450;
 }
-input[type="button"] {
-	cursor: pointer;
-	padding: 5px;
-	border-width: 1px;
-	border-radius: 10%;
-	background: #FDF7E2;
-	/*color: #fff;*/
+input:focus, textarea:focus {
+  background-color: #fff;
+  box-shadow: 0 0 1px 1px #6d5450;
+  outline: 0;
+  transition: box-shadow 0.2s;
+}
+
+input[type="color"] {
+  padding: 1px;
+  cursor: pointer;
+  background-color: #fff;
+}
+input[type="color"]:focus {
+  box-shadow: none;
+}
+
+input[type="button"],
+input[type="submit"] {
+  padding: 7px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  background-color: #fff;
+  color: #6d5450;
+}
+input[type="button"]:hover,
+input[type="submit"]:hover {
+  background-color: #fdf7e2;
+  transition: 0.2s;
+}
+input[type="button"]:active,
+input[type="submit"]:active {
+  color: #fdf7e2;
+  background-color: #6d5450;
+  transition: 0;
+}
+input[type="button"]:focus,
+input[type="submit"]:focus {
+  box-shadow: none;
+}
+
+.button, .leftButton, #interface .scheduling-form .scheduling-button input[name="undo"], #interface .scheduling-form .scheduling-button input[name="redo"], #interface .scheduling-form .scheduling-button input[name="save"], #interface .scheduling-form .scheduling-button input[name="overwrite"], #storage-display-area .storage-schedule input[name="edit"], .rightButton, #interface .scheduling-form .scheduling-button input[name="reset"], #interface .scheduling-form .scheduling-button input[name="all-remove"], #interface .scheduling-form .scheduling-button input[name="all-restore"], #schedule-display-area .scheduling-form-outer .scheduling-form .download input[type="button"], #storage-display-area .storage-schedule input[name="remove"], #storage-display-area .storage-schedule input[name="restore"], #interface .scheduling-form .scheduling-button input[name="add"] {
+  display: block;
+  width: 72px;
+  height: 34px;
+}
+.button::after, .leftButton::after, #interface .scheduling-form .scheduling-button input[name="undo"]::after, #interface .scheduling-form .scheduling-button input[name="redo"]::after, #interface .scheduling-form .scheduling-button input[name="save"]::after, #interface .scheduling-form .scheduling-button input[name="overwrite"]::after, #storage-display-area .storage-schedule input[name="edit"]::after, .rightButton::after, #interface .scheduling-form .scheduling-button input[name="reset"]::after, #interface .scheduling-form .scheduling-button input[name="all-remove"]::after, #interface .scheduling-form .scheduling-button input[name="all-restore"]::after, #schedule-display-area .scheduling-form-outer .scheduling-form .download input[type="button"]::after, #storage-display-area .storage-schedule input[name="remove"]::after, #storage-display-area .storage-schedule input[name="restore"]::after, #interface .scheduling-form .scheduling-button input[name="add"]::after {
+  display: block;
+  clear: both;
+  content: '';
+}
+
+.leftButton, #interface .scheduling-form .scheduling-button input[name="undo"], #interface .scheduling-form .scheduling-button input[name="redo"], #interface .scheduling-form .scheduling-button input[name="save"], #interface .scheduling-form .scheduling-button input[name="overwrite"], #storage-display-area .storage-schedule input[name="edit"] {
+  float: left;
+  margin-left: 6.5px;
+}
+.leftButton:first-of-type, #interface .scheduling-form .scheduling-button input[name="undo"]:first-of-type, #interface .scheduling-form .scheduling-button input[name="redo"]:first-of-type, #interface .scheduling-form .scheduling-button input[name="save"]:first-of-type, #interface .scheduling-form .scheduling-button input[name="overwrite"]:first-of-type, #storage-display-area .storage-schedule input[name="edit"]:first-of-type {
+  margin-left: 0;
+}
+
+.rightButton, #interface .scheduling-form .scheduling-button input[name="reset"], #interface .scheduling-form .scheduling-button input[name="all-remove"], #interface .scheduling-form .scheduling-button input[name="all-restore"], #schedule-display-area .scheduling-form-outer .scheduling-form .download input[type="button"], #storage-display-area .storage-schedule input[name="remove"], #storage-display-area .storage-schedule input[name="restore"] {
+  float: right;
 }
 
 .display-none {
-	display: none;
+  display: none !important;
 }
 
-#header {
-	height: 40px;
-	background: #6D5450;
-	color: #fff;
+.lf0 {
+  margin-top: 0 !important;
 }
-#header-inner {
-	width: 880px;
-	margin: 0 auto;
-	padding: 4px 10px;
+
+.lf1 {
+  margin-top: 16px !important;
 }
-#site-title {
-	font-size: 32px;
+
+.lf2 {
+  margin-top: 32px !important;
+}
+
+.lf3 {
+  margin-top: 48px !important;
+}
+
+.lf4 {
+  margin-top: 64px !important;
+}
+
+::-moz-selection {
+  color: #fff;
+  background: #6d5450;
+}
+
+::selection {
+  color: #fff;
+  background: #6d5450;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
 }
 
 #wrapper {
-	width: 880px;
-	margin: 20px auto 0;
-	padding: 0 10px;
+  width: 100%;
+  height: 100%;
+  color: #6d5450;
+  font-size: 16px;
+  word-wrap: break-word;
+  background-color: #fff;
 }
 
-#interface {
+.inner, #header #header-inner, #main, #footer #footer-inner {
+  overflow: hidden;
+  width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
-#interface, #storage-display-area {
-	float: right;
-	width: 220px;
-	padding: 6px;
-	border: 4px groove #6D5450;
-	border-radius: 5px;
-	background: #FDF7E2;
+#header {
+  height: 40px;
+  background-color: #6d5450;
+  color: #fff;
 }
-#scheduling-form, .storage-schedule {
-	background: #fff;
+#header a {
+  text-decoration: none;
+  color: inherit;
+  background: inherit;
+}
+#header a:hover {
+  text-shadow: none;
+  transition: none;
+}
+#header #header-inner {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+#header #header-inner::after {
+  display: block;
+  clear: both;
+  content: '';
+}
+#header #header-inner #site-title {
+  float: left;
+  width: 620px;
+  font-size: 32px;
+}
+#header #header-inner #nav {
+  position: relative;
+  float: right;
+  width: 300px;
+  height: 32px;
+  margin-left: 20px;
+}
+#header #header-inner #nav ul {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  margin-left: 0;
+  list-style: none;
+}
+#header #header-inner #nav ul li {
+  display: inline-block;
+  margin-left: 20px;
+}
+#header #header-inner #nav ul li:first-of-type {
+  margin-left: 0;
 }
 
-
-#interface .schedule-time input[type="number"] {
-	width: 2.5em;
+#main {
+  min-height: 100%;
+  margin-top: 20px;
+}
+#main #main-inner {
+  overflow: hidden;
+}
+#main .article {
+  float: left;
+  width: 620px;
+  line-height: 1.4;
+}
+#main .article .article-title {
+  font-size: 24px;
+  border-bottom: 2px solid #6d5450;
+}
+#main .article .article-content {
+  margin-top: 20px;
+}
+#main .article .section1 {
+  margin-top: 48px;
+}
+#main .article .section1 > h1 {
+  font-size: 20px;
+}
+#main .article .section1 .section2 {
+  margin-left: 16px;
+  margin-top: 48px;
+}
+#main .article .section1 .section2 > h1 {
+  font-size: 20px;
+}
+#main .scroll-top-outer {
+  position: fixed;
+  margin-left: 960px;
+  bottom: 40px;
+}
+#main .scroll-top-outer .scroll-top {
+  display: table;
+  width: 60px;
+  height: 60px;
+  font-size: 32px;
+  text-decoration: none;
+  opacity: 0.5;
+  border-radius: 50%;
+}
+#main .scroll-top-outer .scroll-top:hover {
+  opacity: 1;
+}
+#main .scroll-top-outer .scroll-top span {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
 }
 
-#interface .schedule-title input[name="title"],
-#interface .schedule-content input#schedule-name, 
-#interface .schedule-content textarea#schedule-detail,
-#interface .schedule-color label.color {
-	width: 100%;
+#footer {
+  clear: both;
+  margin-top: 20px;
+  color: #fff;
+  background-color: #6d5450;
+}
+#footer a {
+  text-decoration: none;
+  color: inherit;
+  background: inherit;
+}
+#footer a:hover {
+  text-shadow: none;
+  transition: none;
+}
+#footer #footer-inner {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+#footer #footer-inner ul {
+  position: relative;
+  margin-left: 0;
+  list-style: none;
+}
+#footer #footer-inner ul li {
+  display: inline-block;
+  margin-left: 20px;
+}
+#footer #footer-inner ul li:first-of-type {
+  margin-left: 0;
+}
+#footer #footer-inner ul li:last-of-type {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  margin-left: 0;
 }
 
-#interface .schedule-time span.start,
-#interface .schedule-time span.finish {
-	display: inline-block;
-	width: 3em;
+#mail-form input[type="text"],
+#mail-form input[type="email"] {
+  width: 240px;
 }
 
-#interface .schedule-color p.color {
-	margin-bottom: 8px;
+.box, .right-box, #interface, #storage-display-area, .left-box, #schedule-display-area .scheduling-form-outer {
+  padding: 10px;
+  border: 5px solid #6d5450;
+  background-color: #fdf7e2;
 }
-#interface .schedule-color p.color:last-child {
-	margin-bottom: 0;
+
+.right-box, #interface, #storage-display-area {
+  float: right;
+  width: 300px;
+  margin-left: 20px;
+}
+.right-box::after, #interface::after, #storage-display-area::after {
+  display: block;
+  clear: both;
+  content: '';
+}
+
+.left-box, #schedule-display-area .scheduling-form-outer {
+  width: 620px;
+}
+
+#interface,
+#schedule-display-area,
+#storage-display-area {
+  line-height: 1;
+}
+#interface p,
+#schedule-display-area p,
+#storage-display-area p {
+  margin-top: 0;
+}
+
+#interface .scheduling-form {
+  background-color: #fff;
+}
+#interface .scheduling-form .schedule-title input[name="title"] {
+  width: 240px;
+}
+#interface .scheduling-form .schedule-content dt {
+  margin-top: 6.5px;
+}
+#interface .scheduling-form .schedule-content dt:first-of-type {
+  margin-top: 0;
+}
+#interface .scheduling-form .schedule-content label,
+#interface .scheduling-form .schedule-content input[name="name"],
+#interface .scheduling-form .schedule-content textarea[name="detail"] {
+  display: block;
+  width: 240px;
+}
+#interface .scheduling-form .schedule-time .wrapper {
+  width: 240px;
+}
+#interface .scheduling-form .schedule-time .wrapper:last-of-type {
+  margin-top: 6.5px;
+}
+#interface .scheduling-form .schedule-time .wrapper > span:first-of-type {
+  display: inline-block;
+  width: 56px;
+}
+#interface .scheduling-form .schedule-time .wrapper label.time span.hour,
+#interface .scheduling-form .schedule-time .wrapper label.time span.minute {
+  display: inline-block;
+  width: 16px;
+}
+#interface .scheduling-form .schedule-time .wrapper label.time input[type="number"] {
+  width: 56px;
+}
+#interface .scheduling-form .schedule-time .wrapper > span:last-of-type {
+  display: inline-block;
+  width: 32px;
+  margin-left: 0px;
+}
+#interface .scheduling-form .schedule-color .wrapper {
+  width: 240px;
+  margin-top: 6.5px;
+}
+#interface .scheduling-form .schedule-color .wrapper:first-of-type {
+  margin-top: 0;
+}
+#interface .scheduling-form .schedule-color span.color {
+  display: inline-block;
+  width: 56px;
+}
+#interface .scheduling-form .schedule-color input[type="color"] {
+  width: 184px;
+}
+#interface .scheduling-form .scheduling-button input[name="add"] {
+  width: 240px;
+}
+#interface .scheduling-form .scheduling-button input[name="all-remove"] {
+  color: #fff;
+  background-color: #6d5450;
 }
 
 #schedule-display-area {
-	float: left;
-	width: 620px;
-	margin-right: 20px;
+  float: left;
+  width: 620px;
 }
-
-#schedule-display-area .title {
-	font-size: 24px;
+#schedule-display-area .scheduling-form-outer .scheduling-form {
+  overflow: hidden;
+  background-color: #fff;
 }
-
+#schedule-display-area .scheduling-form-outer .scheduling-form .start-point {
+  float: left;
+  width: 295px;
+}
+#schedule-display-area .scheduling-form-outer .scheduling-form .start-point .wrapper {
+  height: 34px;
+}
+#schedule-display-area .scheduling-form-outer .scheduling-form .start-point .wrapper input[type="number"] {
+  width: 56px;
+}
+#schedule-display-area .scheduling-form-outer .scheduling-form .download {
+  float: left;
+  width: 295px;
+}
+#schedule-display-area .scheduling-form-outer .scheduling-form .download input[type="button"] {
+  width: 265px;
+}
+#schedule-display-area .scheduling-form-outer .scheduling-form .download::after {
+  display: block;
+  clear: both;
+  content: '';
+}
 #schedule-display-area .writing {
-	font-size: 24px;
+  margin-top: 20px;
 }
-dl.schedule {
-	overflow: hidden;
+#schedule-display-area .writing .schedule .time-schedule {
+  overflow: hidden;
+  clear: both;
+  margin-top: 24px;
 }
-dl.schedule dt {
-	clear: both;
-	float: left;
-	width: 6em;
-	margin-bottom: 1em;
-	padding-left: 0.5em;
-	border-left: solid 1em #fff;
+#schedule-display-area .writing .schedule .time-schedule:first-of-type {
+  margin-top: 0;
 }
-dl.schedule dd {
-	margin-left: 8em;
-	margin-bottom: 1em;
+#schedule-display-area .writing .schedule .time-schedule .time {
+  float: left;
+  width: 144px;
+  padding-left: 12px;
+  font-size: 24px;
+  border-left: solid 24px #fff;
+}
+#schedule-display-area .writing .schedule .time-schedule .name {
+  margin-left: 192px;
+  font-size: 24px;
+}
+#schedule-display-area .writing .schedule .time-schedule .detail {
+  font-size: 16px;
+  margin-left: 192px;
+  margin-top: 8px;
 }
 
 #storage-display-area {
-	margin-top: 20px;
+  margin-top: 20px;
 }
-
 #storage-display-area .storage-schedule {
-	border-top: 2px groove #6D5450;
-	border-right: 2px groove #6D5450;
-	border-left: 2px groove #6D5450;
+  overflow: hidden;
+  width: 270px;
+  padding: 13px;
+  border-top: 2px solid #6d5450;
+  border-right: 2px solid #6d5450;
+  border-left: 2px solid #6d5450;
+  background-color: #fff;
 }
-#storage-display-area .storage-schedule:last-child {
-	border-bottom: 2px groove #6D5450;
+#storage-display-area .storage-schedule:last-of-type {
+  border-bottom: 2px solid #6d5450;
 }
-#storage-display-area svg{
-	width: 200px;
-	height: 200px;
+#storage-display-area .storage-schedule .title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 240px;
+  border-bottom: 2px solid #6d5450;
 }
-#storage-display-area input[name="remove"] {
-	float: right;
+#storage-display-area .storage-schedule .pie-chart {
+  display: block;
+  margin: 13px auto;
+}
+#storage-display-area .storage-schedule input[name="restore"] {
+  width: 240px;
 }
 
-/* clearfix */
-#storage-display-area input[name="remove"]::after {
-	display: block;
-	clear: both;
-	content: '';
-}
+/*# sourceMappingURL=style.css.map */

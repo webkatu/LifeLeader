@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>使い方</title>
+	<link rel="stylesheet" type="text/css" href="css/reset.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<script defer src="js/AnimationController.js"></script>
+	<script defer src="js/ScrollTop.js"></script>
+	<script defer src="js/pjax.js"></script>
+</head>
+<body>
+	<div id="wrapper">
+		<header id="header">
+			<div id="header-inner">
+				<h1 id="site-title"><a class="home-link async" href="index.html">LifeLeader</a></h1>
+				<nav id="nav">
+					<ul>
+						<li><a class="async" href="about.html">LifeLeaderとは？</a></li>
+						<li><a class="async" href="use.html">使い方</a></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+		<div id="main">
+			<div id="main-inner">
+				<article class="article">
+					<header class="article-header">
+						<h1 class="article-title">使い方</h1>
+					</header>
+					<div class="article-content">
+						<section class="section1">
+							<h1 class="section1-title">LifeLeaderの画面の見方</h1>
+							<div class="section1-content">
+								<p>LifeLeaderはスケジュール作成フォーム(右上)とスケジュール保存エリア(右下)とスケジュール表示エリア(左)に分かれています。さらにスケジュール表示エリアには円グラフエリア(左上)とテキストエリア(左下)に分かれています。</p>
+								<p>各エリアについてそれぞれ説明していきます。</p>
+							</div>
+							<section class="section2">
+								<h1 class="section2-title">スケジュール作成フォーム(右上)について</h1>
+								<div class="section2-content">
+									<p>計画表はこのスケジュール作成フォームを使って作成します。各フォームについて説明していきます。</p>
+									<ul>
+										<li class="lf2">
+											<p>スケジュールのタイトル</p>
+											<p>現在作成してる計画表のタイトルを決めることができます。例えば「日曜日の予定」などです。このフォームに任意のタイトルを入力すると即座にスケジュール表示エリアに反映されます。</p>
+										</li>
+										<li class="lf2">
+											<p>個々の予定</p>
+											<p>「予定名」とその予定の補足事項を入力できます。「予定名」は円グラフとテキストエリアに表示されます。「補足事項」はテキストエリアにしか表示されません。このフォームは「追加」ボタンを押すまでスケジュール表示エリアに反映されません。</p>
+										</li>
+										<li class="lf2">
+											<p>時間(15分単位)</p>
+											<p>個々の予定に入力した予定の開始時刻と終了時刻を入力できます。時間指定は15分単位です。「時間」は0~23の数値を入力できます。「分」は15分単位ですので0、15、30、45のいずれかの数値を入力できます。このフォームは「追加」ボタンを押すまでスケジュール表示エリアに反映されません。</p>
+											<p>フォームフォーカス時にマウスホイールを上下させることで時刻を変更できます</p>
+										</li>
+										<li class="lf2">
+											<p>色</p>
+											<p>個々の予定に入力した予定の色を決めることができます。主に円グラフ表示エリアに反映されます。個々の予定の予定名が同じであっても色が違うと予定は違うものとして扱われます。「線の色」というのは円グラフの線の色です。このフォームのみ即座に円グラフ表示エリアに反映されますが、「背景色」と「文字色」は「追加」ボタンを押すまでスケジュール表示エリアに反映されません。</p>
+											<p>なお、お使いのブラウザがInternet Explorer11の場合、フォームフォーカス時にマウスホイールを上下させることで色を変更できます。</p>
+										</li>
+										<li class="lf2">
+											<p>追加ボタン</p>
+											<p>「予定名」、「補足事項」、「開始時刻」、「終了時刻」、「背景色」、「文字色」に入力した値をスケジュール表示エリアに反映させます。これを繰り返していくことによって1日の計画表を作成していきます。</p>
+										</li>
+										<li class="lf2">
+											<p>戻る/進むボタン</p>
+											<p>「←」ボタンと「→」ボタンは戻る/進むボタンです。計画表の作成途中に入力ミスした時などに使うと便利です。</p>
+										</li>
+										<li class="lf2">
+											<p>リセットボタン</p>
+											<p>現在作成している計画表を破棄して最初の状態に戻します。</p>
+										</li>
+										<li class="lf2">
+											<p>保存ボタン</p>
+											<p>作成した計画表を保存できます。ボタンを押すとスケジュール保存エリアに追加されていきます。保存した計画表はブラウザ上に保存されます。一度ブラウザを閉じても同じブラウザでアクセスすることによって再び保存した計画表を編集することができます。</p>
+										</li>
+										<li class="lf2">
+											<p>上書きボタン</p>
+											<p>保存した計画表を編集している時に押すと上書き保存されます。</p>
+										</li>
+										<li class="lf2">
+											<p>全削除ボタン</p>
+											<p>保存した計画表を全て削除します。押すとこのボタンは全復旧ボタンになります。誤って押してしまっても、そのページに留まっている限り全復旧ボタンを押し削除した予定を復旧することができます。</p>
+										</li>
+									</ul>
+								</div>
+							</section>
+							<section class="section2">
+								<h1 class="section2-title">スケジュール保存エリア(右下)について</h1>
+								<div class="section2-content">
+									<p>スケジュール保存エリアには保存した計画表が表示されます。編集ボタンを押すことによって再び予定を作り直すことができます。削除ボタンを押すとその予定は削除されます。間違って押してしまってもそのページに留まっている限り復旧ボタンによって削除した予定を復旧することができます。</p>
+								</div>
+							</section>
+							<section class="section2">
+								<h1 class="section2-title">スケジュール表示エリア(左)について</h1>
+								<div class="section2-content">
+									<p>スケジュール表示エリアは作成済または作成中の計画表を円グラフとテキストで表示します。円グラフの下にあるフォームについて説明します。</p>
+									<ul>
+										<li class="lf2">
+											<p>開始点</p>
+											<p>このフォームは作成した計画表のテキスト表示の開始点を決めることができます。テキスト表示エリアでは、基本的に0時00分から見て始めにある予定から順に表示していきますが、この開始点をユーザーが決めることができます。時間指定は15分単位です。</p>
+										</li>
+										<li class="lf2">
+											<p>ダウンロードボタン</p>
+											<p>円グラフをpng形式でダウンロードすることができます。</p>
+										</li>
+									</ul>
+								</div>
+							</section>
+						</section>
+						<section class="section1">
+							<h1>対応ブラウザ</h1>
+							<div class="section2-content">
+								<p><a href="https://www.mozilla.org/ja/firefox/new/" target="_blank">FireFox</a>、<a href="https://www.google.com/chrome/browser/" target="_blank">GoogleChrome</a>、<a href="http://windows.microsoft.com/ja-jp/internet-explorer/download-ie" target="_blank">Internet Explorer11</a></p>
+							</div>
+						</section>
+					</div>
+					<p>もし不具合を発見したなら、<a class="async" href="contact.html">お問い合わせ</a>から連絡していただけると助かります。</p>
+				</article>
+			</div><!-- main-inner -->
+			<div class="scroll-top-outer">
+				<a class="scroll-top" href="#top">
+					<span class="arrow">↑</span>
+				</a>
+			</div>
+		</div><!-- /main -->
+		<footer id="footer">
+			<div id="footer-inner">
+				<ul class="footer-nav">
+					<li><a class="async" href="index.html">ホーム</a></li>
+					<li><a href="https://github.com/webkatu/LifeLeader" target="_blank">GitHub</a></li>
+					<li><a class="async" href="contact.html">お問い合わせ</a></li>
+					<li><a href="http://webkatu.com" target="_blank">Webkatu.com</a></li>
+				</ul>
+			</div>
+		</footer>
+	</div>
+</body>
+</html>
