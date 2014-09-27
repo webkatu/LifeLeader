@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>LifeLeader</title>
+	<link rel="stylesheet" type="text/css" href="css/reset.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<script defer src="js/AnimationController.js"></script>
+	<script defer src="js/ScrollTop.js"></script>
+	<script defer src="js/pjax.js"></script>
+	<script defer class="async" src="js/LifeLeader.js"></script>
+</head>
+<body>
+	<div id="wrapper">
+		<header id="header">
+			<div id="header-inner">
+				<h1 id="site-title"><a class="home-link async" href="index.html">LifeLeader</a></h1>
+				<nav id="nav">
+					<ul>
+						<li><a class="async" href="about.html">LifeLeaderとは？</a></li>
+						<li><a class="async" href="use.html">使い方</a></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+		<div id="main">
+			<div id="main-inner">
+				<div id="interface">
+					<div id="scheduling-form-outer">
+						<form action="" method="POST" class="scheduling-form">
+							<fieldset class="schedule-title">
+								<legend>スケジュールのタイトル</legend>
+								<input type="text" name="title" placeholder="例)日曜日の予定">
+							</fieldset>
+							<fieldset class="schedule-content">
+								<legend>個々の予定</legend>
+								<dl>
+									<dt><label for="schedule-name">予定名</label></dt>
+									<dd><input type="text" id="schedule-name" name="name" list="example-schedule"></dd>
+								<datalist id="example-schedule">
+									<option value="食事"></option>
+									<option value="仕事"></option>
+									<option value="授業"></option>
+									<option value="移動"></option>
+									<option value="家事"></option>
+									<option value="勉強"></option>
+									<option value="読書"></option>
+									<option value="風呂"></option>
+									<option value="睡眠"></option>
+									<option value="未定"></option>
+								</datalist>
+									<dt><label for="schedule-detail">補足</label></dt>
+									<dd><textarea id="schedule-detail" name="detail" cols="15" rows="4"></textarea></dd>
+								</dl>
+							</fieldset>
+							<fieldset class="schedule-time">
+								<legend>時間(15分単位)</legend>
+								<div class="start wrapper">
+									<span>開始: </span><label class="time"><input type="number" name="hour" max="23" min="0" step="1" size="2" value="0"><span class="hour">時</span></label>
+									<label class="time"><input type="number" name="minute" max="45" min="0" step="15" size="2" value="0"><span class="minute">分</span></label><span>から</span>
+								</div>
+								<div class="finish wrapper">
+									<span>終了: </span><label class="time"><input type="number" name="hour" max="23" min="0" step="1" value="0"><span class="hour">時</span></label>
+									<label class="time"><input type="number" name="minute" max="45" min="0" step="15" value="0"><span class="minute">分</span></label><span>まで</span>
+								</div>
+							</fieldset>
+							<fieldset class="schedule-color">
+								<legend>色</legend>
+								<p class="wrapper"><label class="color"><span class="color">背景色: </span><input type="color" name="back-color" value="#fdf7e2"></label></p>
+								<p class="wrapper"><label class="color"><span class="color">文字色: </span><input type="color" name="font-color" value="#6d5450"></label></p>
+								<p class="wrapper"><label class="color"><span class="color">線の色: </span><input type="color" name="line-color" value="#6d5450"></label></p>
+							</fieldset>
+							<div class="scheduling-button">
+								<fieldset>
+									<input type="button" name="add" value="追加">
+								</fieldset>
+								<fieldset>
+									<input type="button" name="undo" value="←">
+									<input type="button" name="redo" value="→">
+									<input type="button" name="reset" value="リセット">
+								</fieldset>
+								<fieldset>
+									<input type="button" name="save" value="保存">
+									<input type="button" name="overwrite" value="上書き">
+									<input type="button" name="all-remove" value="全削除">
+									<input type="button" class="display-none" name="all-restore" value="全復旧">
+								</fieldset>
+							</div>
+						</form>
+					</div>
+					<div class="other">
+					</div>
+				</div>
+				<article class="article" id="schedule-display-area">
+					<header class="article-header">
+						<h1 class="article-title"></h1>
+					</header>
+					<div class="pie-chart">
+						<svg xmlns="http://www.w3.org/2000/svg" width="620" height="620">
+						</svg>
+					</div>
+					<div class="scheduling-form-outer">
+						<form class="scheduling-form">
+							<fieldset class="start-point">
+								<legend>開始点</legend>
+								<div class="wrapper">
+									<label><input type="number" name="hour" max="23" min="0" step="1" size="2" value="">時</label>
+									<label><input type="number" name="minute" max="45" min="0" step="15" size="2" value="">分</label>
+								</div>
+							</fieldset>
+							<fieldset class="download">
+								<legend>ダウンロード</legend>
+								<input type="button" name="image" value="画像ダウンロード">
+							</fieldset>
+						</form>
+					</div>
+					<div class="writing">
+						<dl class="schedule">
+						</dl>
+					</div>
+				</article>
+				<div id="storage-display-area">
+				</div>
+			</div><!-- /main-inner -->
+			<div class="scroll-top-outer">
+				<a class="scroll-top" href="#top">
+					<span class="arrow">↑</span>
+				</a>
+			</div>
+		</div><!-- /main -->
+		<footer id="footer">
+			<div id="footer-inner">
+				<ul class="footer-nav">
+					<li><a class="async" href="index.html">ホーム</a></li>
+					<li><a href="https://github.com/webkatu/LifeLeader" target="_blank">GitHub</a></li>
+					<li><a class="async" href="contact.html">お問い合わせ</a></li>
+					<li><a href="http://webkatu.com" target="_blank">Webkatu.com</a></li>
+				</ul>
+			</div>
+		</footer>
+	</div>
+</body>
+</html>
