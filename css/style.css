@@ -311,6 +311,9 @@ body {
   margin-left: 0;
 }
 
+#mail-form {
+  margin-top: 20px;
+}
 #mail-form input[type="text"],
 #mail-form input[type="email"] {
   width: 240px;
@@ -340,12 +343,12 @@ body {
 #interface,
 #schedule-display-area,
 #storage-display-area {
-  line-height: 1;
+  line-height: 1 !important;
 }
 #interface p,
 #schedule-display-area p,
 #storage-display-area p {
-  margin-top: 0;
+  margin-top: 0 !important;
 }
 
 #interface .scheduling-form {

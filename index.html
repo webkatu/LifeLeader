@@ -9,6 +9,20 @@
 	<script defer src="js/ScrollTop.js"></script>
 	<script defer src="js/pjax.js"></script>
 	<script defer class="async" src="js/LifeLeader.js"></script>
+	<!-- analytics -->
+		<script>
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		  ga('create', 'UA-29556066-6', 'auto');
+		</script>
+		<script class="async">
+			ga('set', 'location', window.location.href);
+			ga('send', 'pageview');
+		</script>
+	<!-- /analytics -->
 </head>
 <body>
 	<div id="wrapper">
@@ -41,12 +55,14 @@
 									<option value="食事"></option>
 									<option value="仕事"></option>
 									<option value="授業"></option>
+									<option value="休憩"></option>
 									<option value="移動"></option>
 									<option value="家事"></option>
 									<option value="勉強"></option>
 									<option value="読書"></option>
 									<option value="風呂"></option>
 									<option value="睡眠"></option>
+									<option value="フリー"></option>
 									<option value="未定"></option>
 								</datalist>
 									<dt><label for="schedule-detail">補足</label></dt>

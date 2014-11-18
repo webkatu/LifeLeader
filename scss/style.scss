@@ -163,7 +163,7 @@ $buttonHeight: $baseFontSize + $inputBorderSize * 2 + $inputPadding * 2;
 .lf4 { margin-top: $baseFontSize * 4 !important; }
 
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 
 ::-moz-selection { color: $baseColor; background: $accentColor; }
 ::selection      { color: $baseColor; background: $accentColor; }
@@ -333,6 +333,7 @@ $navWidth: $mainInnerWidth - ($siteTitleWidth + $defaultMargin);
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 #mail-form {
+	margin-top: $defaultMargin;
 	input[type="text"],
 	input[type="email"] {
 		width: $baseFontSize * 15;
@@ -365,8 +366,8 @@ $navWidth: $mainInnerWidth - ($siteTitleWidth + $defaultMargin);
 #interface,
 #schedule-display-area,
 #storage-display-area {
-	line-height: 1;
-	p { margin-top: 0; }
+	line-height: 1 !important;
+	p { margin-top: 0 !important; }
 }
 
 $firstSpanWidth: $baseFontSize * 3.5;
