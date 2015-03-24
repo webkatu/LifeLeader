@@ -14,7 +14,7 @@ mb_internal_encoding('UTF-8');
 
 //XMLHttpRequest以外からのアクセスの処理;
 if(!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || $_SERVER['HTTP_X_REQUESTED_WITH'] !== 'XMLHttpRequest') {
-	die(json_encode(array('result' => false), JSON_HEX_TAG | JSON_HEX_AOPS | JSON_HEX_QUOT | JSON_HEX_AMP));
+	die(json_encode(array('result' => false), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP));
 }
 
 $name = trim(rm_indention($_POST['name']));
@@ -43,7 +43,7 @@ if($name !== '' && $message !== '') {
 	$success = false;
 }
 $response = array('result' => $success);
-echo json_encode($response, JSON_HEX_TAG | JSON_HEX_AOPS | JSON_HEX_QUOT | JSON_HEX_AMP);
+echo json_encode($response, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
 //改行を消す(メールヘッダ・インジェクション対策);
 function rm_indention($str) {
